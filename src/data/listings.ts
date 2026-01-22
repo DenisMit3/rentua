@@ -7,6 +7,7 @@ export interface Listing {
     city: string;
     address: string;
     pricePerNight: number;
+    cleaningFee: number;
     images: string[];
     bedrooms: number;
     beds: number;
@@ -20,19 +21,39 @@ export interface Listing {
     instantBook: boolean;
 }
 
+// Список городов России для фильтров
+export const russianCities = [
+    'Москва',
+    'Санкт-Петербург',
+    'Сочи',
+    'Казань',
+    'Нижний Новгород',
+    'Екатеринбург',
+    'Новосибирск',
+    'Краснодар',
+    'Калининград',
+    'Владивосток',
+    'Ростов-на-Дону',
+    'Самара',
+    'Уфа',
+    'Красноярск',
+    'Воронеж'
+];
+
 export const listings: Listing[] = [
     {
         id: '1',
-        title: 'Уютная студия в центре Киева',
+        title: 'Уютная студия в центре Москвы',
         description: 'Современная студия с панорамным видом на город. Полностью оборудована для комфортного проживания. Рядом метро, рестораны и достопримечательности.',
         type: 'studio',
-        city: 'Киев',
-        address: 'ул. Крещатик, 15',
-        pricePerNight: 1500,
+        city: 'Москва',
+        address: 'ул. Тверская, 15',
+        pricePerNight: 4500,
+        cleaningFee: 1000,
         images: [
-            'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800',
-            'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800',
-            'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800'
+            'https://picsum.photos/seed/studio1/800/600',
+            'https://picsum.photos/seed/studio1b/800/600',
+            'https://picsum.photos/seed/studio1c/800/600'
         ],
         bedrooms: 1,
         beds: 1,
@@ -42,7 +63,7 @@ export const listings: Listing[] = [
         rating: 4.9,
         reviewsCount: 48,
         hostName: 'Анна',
-        hostAvatar: 'https://i.pravatar.cc/150?img=1',
+        hostAvatar: 'https://picsum.photos/seed/anna/150/150',
         instantBook: true
     },
     {
@@ -50,13 +71,14 @@ export const listings: Listing[] = [
         title: 'Просторная 2-комнатная квартира',
         description: 'Стильная квартира в новом доме с современным ремонтом. Отличный вариант для семьи или компании друзей. Есть парковка.',
         type: 'apartment',
-        city: 'Одесса',
-        address: 'Аркадия, ул. Генуэзская, 5',
-        pricePerNight: 2200,
+        city: 'Санкт-Петербург',
+        address: 'Невский проспект, 88',
+        pricePerNight: 5500,
+        cleaningFee: 1200,
         images: [
-            'https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=800',
-            'https://images.unsplash.com/photo-1484154218962-a197022b5858?w=800',
-            'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800'
+            'https://picsum.photos/seed/apt2/800/600',
+            'https://picsum.photos/seed/apt2b/800/600',
+            'https://picsum.photos/seed/apt2c/800/600'
         ],
         bedrooms: 2,
         beds: 2,
@@ -66,7 +88,7 @@ export const listings: Listing[] = [
         rating: 4.8,
         reviewsCount: 32,
         hostName: 'Максим',
-        hostAvatar: 'https://i.pravatar.cc/150?img=3',
+        hostAvatar: 'https://picsum.photos/seed/max/150/150',
         instantBook: true
     },
     {
@@ -74,13 +96,14 @@ export const listings: Listing[] = [
         title: 'Дом с садом у моря',
         description: 'Уютный дом в 5 минутах от пляжа. Большой сад, мангал, беседка. Идеально для семейного отдыха. Тихий район.',
         type: 'house',
-        city: 'Одесса',
-        address: 'Совиньон, ул. Морская, 22',
-        pricePerNight: 4500,
+        city: 'Сочи',
+        address: 'ул. Приморская, 22',
+        pricePerNight: 8000,
+        cleaningFee: 2000,
         images: [
-            'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800',
-            'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800',
-            'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800'
+            'https://picsum.photos/seed/house3/800/600',
+            'https://picsum.photos/seed/house3b/800/600',
+            'https://picsum.photos/seed/house3c/800/600'
         ],
         bedrooms: 3,
         beds: 4,
@@ -90,7 +113,7 @@ export const listings: Listing[] = [
         rating: 4.95,
         reviewsCount: 67,
         hostName: 'Виктория',
-        hostAvatar: 'https://i.pravatar.cc/150?img=5',
+        hostAvatar: 'https://picsum.photos/seed/vika/150/150',
         instantBook: false
     },
     {
@@ -98,13 +121,14 @@ export const listings: Listing[] = [
         title: 'Loft в историческом центре',
         description: 'Стильный лофт в отреставрированном здании XIX века. Высокие потолки, кирпичные стены, дизайнерская мебель.',
         type: 'apartment',
-        city: 'Львов',
-        address: 'пл. Рынок, 8',
-        pricePerNight: 1800,
+        city: 'Казань',
+        address: 'ул. Баумана, 8',
+        pricePerNight: 3500,
+        cleaningFee: 800,
         images: [
-            'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=800',
-            'https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?w=800',
-            'https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=800'
+            'https://picsum.photos/seed/loft4/800/600',
+            'https://picsum.photos/seed/loft4b/800/600',
+            'https://picsum.photos/seed/loft4c/800/600'
         ],
         bedrooms: 1,
         beds: 1,
@@ -114,7 +138,7 @@ export const listings: Listing[] = [
         rating: 4.85,
         reviewsCount: 89,
         hostName: 'Олег',
-        hostAvatar: 'https://i.pravatar.cc/150?img=8',
+        hostAvatar: 'https://picsum.photos/seed/oleg/150/150',
         instantBook: true
     },
     {
@@ -122,13 +146,14 @@ export const listings: Listing[] = [
         title: 'Пентхаус с террасой',
         description: 'Роскошный пентхаус на последнем этаже с огромной террасой. Джакузи, панорамные окна, премиум-класс.',
         type: 'apartment',
-        city: 'Киев',
-        address: 'Печерск, ул. Леси Украинки, 7',
-        pricePerNight: 6500,
+        city: 'Москва',
+        address: 'Пресненская набережная, 12',
+        pricePerNight: 15000,
+        cleaningFee: 3000,
         images: [
-            'https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde?w=800',
-            'https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=800',
-            'https://images.unsplash.com/photo-1600573472550-8090b5e0745e?w=800'
+            'https://picsum.photos/seed/pent5/800/600',
+            'https://picsum.photos/seed/pent5b/800/600',
+            'https://picsum.photos/seed/pent5c/800/600'
         ],
         bedrooms: 3,
         beds: 3,
@@ -138,21 +163,22 @@ export const listings: Listing[] = [
         rating: 5.0,
         reviewsCount: 23,
         hostName: 'Елена',
-        hostAvatar: 'https://i.pravatar.cc/150?img=9',
+        hostAvatar: 'https://picsum.photos/seed/elena/150/150',
         instantBook: false
     },
     {
         id: '6',
-        title: 'Комната в центре Харькова',
+        title: 'Комната в центре Краснодара',
         description: 'Уютная комната в просторной квартире. Общая кухня и ванная. Отличный вариант для командировки.',
         type: 'room',
-        city: 'Харьков',
-        address: 'пл. Свободы, 4',
-        pricePerNight: 600,
+        city: 'Краснодар',
+        address: 'ул. Красная, 4',
+        pricePerNight: 1500,
+        cleaningFee: 500,
         images: [
-            'https://images.unsplash.com/photo-1586105251261-72a756497a11?w=800',
-            'https://images.unsplash.com/photo-1598928506311-c55ez69f3af?w=800',
-            'https://images.unsplash.com/photo-1595526114035-0d45ed16cfbf?w=800'
+            'https://picsum.photos/seed/room6/800/600',
+            'https://picsum.photos/seed/room6b/800/600',
+            'https://picsum.photos/seed/room6c/800/600'
         ],
         bedrooms: 1,
         beds: 1,
@@ -162,7 +188,57 @@ export const listings: Listing[] = [
         rating: 4.6,
         reviewsCount: 15,
         hostName: 'Дмитрий',
-        hostAvatar: 'https://i.pravatar.cc/150?img=12',
+        hostAvatar: 'https://picsum.photos/seed/dima/150/150',
         instantBook: true
+    },
+    {
+        id: '7',
+        title: 'Апартаменты с видом на Неву',
+        description: 'Элегантные апартаменты с потрясающим видом на Неву и Эрмитаж. Исторический центр, рядом все достопримечательности.',
+        type: 'apartment',
+        city: 'Санкт-Петербург',
+        address: 'Дворцовая набережная, 32',
+        pricePerNight: 7000,
+        cleaningFee: 1500,
+        images: [
+            'https://picsum.photos/seed/neva7/800/600',
+            'https://picsum.photos/seed/neva7b/800/600',
+            'https://picsum.photos/seed/neva7c/800/600'
+        ],
+        bedrooms: 2,
+        beds: 2,
+        bathrooms: 1,
+        maxGuests: 4,
+        amenities: ['Wi-Fi', 'Кондиционер', 'Кухня', 'Вид на Неву', 'Паркинг'],
+        rating: 4.9,
+        reviewsCount: 56,
+        hostName: 'Ирина',
+        hostAvatar: 'https://picsum.photos/seed/irina/150/150',
+        instantBook: true
+    },
+    {
+        id: '8',
+        title: 'Коттедж в горах Красной Поляны',
+        description: 'Уютный коттедж для горнолыжного отдыха. Камин, сауна, панорамные окна с видом на горы.',
+        type: 'house',
+        city: 'Сочи',
+        address: 'Красная Поляна, ул. Горная, 15',
+        pricePerNight: 12000,
+        cleaningFee: 2500,
+        images: [
+            'https://picsum.photos/seed/cottage8/800/600',
+            'https://picsum.photos/seed/cottage8b/800/600',
+            'https://picsum.photos/seed/cottage8c/800/600'
+        ],
+        bedrooms: 4,
+        beds: 5,
+        bathrooms: 2,
+        maxGuests: 10,
+        amenities: ['Wi-Fi', 'Камин', 'Сауна', 'Кухня', 'Парковка', 'Вид на горы'],
+        rating: 4.95,
+        reviewsCount: 42,
+        hostName: 'Андрей',
+        hostAvatar: 'https://picsum.photos/seed/andrey/150/150',
+        instantBook: false
     }
 ];

@@ -24,7 +24,8 @@ import {
     Camera,
     Thermometer,
     Usb,
-    Music
+    Music,
+    CreditCard
 } from 'lucide-react';
 import { vehicles } from '@/data/vehicles';
 import { notFound } from 'next/navigation';
@@ -288,16 +289,17 @@ export default function VehicleDetailPage({ params }: PageProps) {
                             transition={{ delay: 0.2 }}
                         >
                             {/* Price */}
+                            {/* Price */}
                             <div className="flex items-baseline gap-2 mb-2">
                                 <span className="text-3xl font-bold text-white">
-                                    {vehicle.pricePerDay.toLocaleString()} ₴
+                                    {vehicle.pricePerDay.toLocaleString()} ₽
                                 </span>
                                 <span className="text-gray-400">/ день</span>
                             </div>
 
                             {/* Deposit */}
                             <div className="text-gray-400 text-sm mb-6">
-                                Залог: {vehicle.deposit.toLocaleString()} ₴
+                                Залог: {vehicle.deposit.toLocaleString()} ₽
                             </div>
 
                             {/* Quick Book Info */}
@@ -330,18 +332,25 @@ export default function VehicleDetailPage({ params }: PageProps) {
 
                             {/* CTA Buttons */}
                             <div className="space-y-3">
-                                <a
-                                    href={`https://t.me/rentua?text=${encodeURIComponent(`Здравствуйте! Хочу арендовать: ${vehicle.title}`)}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
+                                <Link
+                                    href={`/cars/${vehicle.id}/booking`}
                                     className="btn btn-primary w-full"
                                 >
+                                    <CreditCard size={20} />
+                                    Забронировать онлайн
+                                </Link>
+                                <a
+                                    href={`https://t.me/MikhalinaAnn?text=${encodeURIComponent(`Здравствуйте! Хочу арендовать: ${vehicle.title}`)}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="btn btn-secondary w-full"
+                                >
                                     <MessageCircle size={20} />
-                                    Забронировать в Telegram
+                                    Написать в Telegram
                                 </a>
                                 <a
-                                    href="tel:+380991234567"
-                                    className="btn btn-secondary w-full"
+                                    href="tel:+79818188279"
+                                    className="btn btn-outline w-full"
                                 >
                                     <Phone size={20} />
                                     Позвонить

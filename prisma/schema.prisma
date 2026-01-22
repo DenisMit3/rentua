@@ -1,0 +1,659 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ENUMS
+// ═══════════════════════════════════════════════════════════════
+
+enum UserRole {
+  USER
+  HOST
+  ADMIN
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
+
+enum ListingStatus {
+  DRAFT
+  PENDING_REVIEW
+  ACTIVE
+  INACTIVE
+  REJECTED
+}
+
+enum VehicleType {
+  SEDAN
+  SUV
+  HATCHBACK
+  COUPE
+  CONVERTIBLE
+  MINIVAN
+  PICKUP
+  ELECTRIC
+  LUXURY
+}
+
+enum TransmissionType {
+  AUTOMATIC
+  MANUAL
+}
+
+enum FuelType {
+  PETROL
+  DIESEL
+  ELECTRIC
+  HYBRID
+  LPG
+}
+
+// ═══════════════════════════════════════════════════════════════
+// USER & AUTH
+// ═══════════════════════════════════════════════════════════════
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  emailVerified DateTime?
+  password      String?
+  name          String?
+  phone         String?
+  avatar        String?
+  role          UserRole  @default(USER)
+  isVerified    Boolean   @default(false)
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  // Водительские права (для аренды машин)
+  driverLicense       String?
+  driverLicenseExpiry DateTime?
+  driverLicenseVerified Boolean @default(false)
+  
+  accounts      Account[]
+  sessions      Session[]
+  listings      Listing[]
+  vehicles      Vehicle[]
+  bookingsAsGuest  Booking[] @relation("GuestBookings")
+  bookingsAsHost   Booking[] @relation("HostBookings")
+  vehicleBookingsAsRenter VehicleBooking[] @relation("RenterBookings")
+  vehicleBookingsAsOwner  VehicleBooking[] @relation("OwnerBookings")
+  reviews       Review[]
+  vehicleReviews VehicleReview[]
+  favorites     Favorite[]
+  vehicleFavorites VehicleFavorite[]
+  sentMessages      Message[] @relation("SentMessages")
+  notifications Notification[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ═══════════════════════════════════════════════════════════════
+// LISTINGS (ЖИЛЬЁ)
+// ═══════════════════════════════════════════════════════════════
+
+model Listing {
+  id          String        @id @default(cuid())
+  title       String
+  description String        @db.Text
+  slug        String        @unique
+  status      ListingStatus @default(DRAFT)
+  
+  // Локация
+  country     String
+  city        String
+  address     String
+  latitude    Float
+  longitude   Float
+  
+  // Характеристики
+  propertyType String       // apartment, house, room, studio
+  rooms       Int
+  bedrooms    Int
+  beds        Int
+  bathrooms   Int
+  maxGuests   Int
+  area        Float?
+  floor       Int?
+  totalFloors Int?
+  
+  // Цены
+  pricePerNight   Float
+  cleaningFee     Float?
+  serviceFee      Float?
+  weeklyDiscount  Float?     // процент скидки
+  monthlyDiscount Float?
+  
+  // Правила
+  checkInTime   String       @default("14:00")
+  checkOutTime  String       @default("12:00")
+  minNights     Int          @default(1)
+  maxNights     Int          @default(30)
+  instantBook   Boolean      @default(false)
+  
+  // Медиа
+  images      String[]
+  
+  // Мета
+  views       Int           @default(0)
+  
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  
+  hostId      String
+  host        User          @relation(fields: [hostId], references: [id])
+  
+  amenities   ListingAmenity[]
+  bookings    Booking[]
+  reviews     Review[]
+  favorites   Favorite[]
+  availability Availability[]
+  blockedDates BlockedDate[]
+}
+
+model Amenity {
+  id       String   @id @default(cuid())
+  name     String   @unique
+  icon     String
+  category String   // basic, comfort, safety, outdoor
+  
+  listings ListingAmenity[]
+}
+
+model ListingAmenity {
+  listingId String
+  amenityId String
+  
+  listing   Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  amenity   Amenity @relation(fields: [amenityId], references: [id])
+  
+  @@id([listingId, amenityId])
+}
+
+model Booking {
+  id            String        @id @default(cuid())
+  status        BookingStatus @default(PENDING)
+  
+  checkIn       DateTime
+  checkOut      DateTime
+  guests        Int
+  nights        Int
+  
+  // Цены на момент бронирования
+  pricePerNight Float
+  cleaningFee   Float
+  serviceFee    Float
+  totalPrice    Float
+  
+  // Платёж
+  paymentIntentId String?
+  paidAt          DateTime?
+  
+  // Отмена
+  cancelledAt     DateTime?
+  cancellationReason String?
+  refundAmount    Float?
+  
+  specialRequests String? @db.Text
+  
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  
+  listingId     String
+  listing       Listing       @relation(fields: [listingId], references: [id])
+  
+  guestId       String
+  guest         User          @relation("GuestBookings", fields: [guestId], references: [id])
+  
+  hostId        String
+  host          User          @relation("HostBookings", fields: [hostId], references: [id])
+  
+  review        Review?
+  messages      Message[]
+  guestDetails  GuestDetails?
+  consents      UserConsent[]
+}
+
+model Review {
+  id          String   @id @default(cuid())
+  rating      Int      // 1-5
+  comment     String   @db.Text
+  
+  // Детальные оценки
+  cleanliness Int?
+  accuracy    Int?
+  checkIn     Int?
+  communication Int?
+  location    Int?
+  value       Int?
+  
+  createdAt   DateTime @default(now())
+  
+  listingId   String
+  listing     Listing  @relation(fields: [listingId], references: [id])
+  
+  bookingId   String   @unique
+  booking     Booking  @relation(fields: [bookingId], references: [id])
+  
+  authorId    String
+  author      User     @relation(fields: [authorId], references: [id])
+}
+
+model Favorite {
+  userId    String
+  listingId String
+  createdAt DateTime @default(now())
+  
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  listing   Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  
+  @@id([userId, listingId])
+}
+
+model Availability {
+  id          String   @id @default(cuid())
+  date        DateTime
+  isAvailable Boolean  @default(true)
+  price       Float?   // Кастомная цена на дату
+  
+  listingId   String
+  listing     Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  
+  @@unique([listingId, date])
+}
+
+model BlockedDate {
+  id        String   @id @default(cuid())
+  startDate DateTime
+  endDate   DateTime
+  reason    String?
+  
+  listingId String
+  listing   Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  content   String   @db.Text
+  isRead    Boolean  @default(false)
+  
+  createdAt DateTime @default(now())
+  
+  senderId  String
+  sender    User     @relation("SentMessages", fields: [senderId], references: [id])
+  
+  bookingId         String?
+  booking           Booking?        @relation(fields: [bookingId], references: [id])
+  vehicleBookingId  String?
+  vehicleBooking    VehicleBooking? @relation(fields: [vehicleBookingId], references: [id])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  type      String
+  title     String
+  message   String
+  isRead    Boolean  @default(false)
+  data      Json?
+  
+  createdAt DateTime @default(now())
+  
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ═══════════════════════════════════════════════════════════════
+// VEHICLES (АВТОМОБИЛИ)
+// ═══════════════════════════════════════════════════════════════
+
+model Vehicle {
+  id          String        @id @default(cuid())
+  title       String
+  description String        @db.Text
+  slug        String        @unique
+  status      ListingStatus @default(DRAFT)
+  
+  // Основная информация
+  make        String        // Марка (Toyota, BMW, Mercedes)
+  model       String        // Модель (Camry, X5, E-Class)
+  year        Int           // Год выпуска
+  color       String
+  licensePlate String?      // Гос. номер (скрыт до бронирования)
+  vin         String?       // VIN-код
+  
+  // Тип и характеристики
+  vehicleType    VehicleType
+  transmission   TransmissionType
+  fuelType       FuelType
+  seats          Int           // Количество мест
+  doors          Int           // Количество дверей
+  engineVolume   Float?        // Объём двигателя (л)
+  horsePower     Int?          // Мощность (л.с.)
+  fuelConsumption Float?       // Расход топлива (л/100км)
+  
+  // Локация
+  city        String
+  address     String        // Адрес получения
+  latitude    Float
+  longitude   Float
+  deliveryAvailable Boolean  @default(false) // Доставка авто
+  deliveryRadius    Int?     // Радиус доставки (км)
+  deliveryPrice     Float?   // Цена доставки
+  
+  // Цены
+  pricePerDay       Float
+  pricePerWeek      Float?   // Скидка за неделю
+  pricePerMonth     Float?   // Скидка за месяц
+  deposit           Float    // Залог
+  
+  // Правила
+  minRentalDays     Int      @default(1)
+  maxRentalDays     Int      @default(30)
+  minDriverAge      Int      @default(21)
+  minDrivingExp     Int      @default(2)  // Стаж вождения (лет)
+  mileageLimit      Int?     // Лимит км/сутки
+  mileageOverPrice  Float?   // Цена за перепробег (за км)
+  instantBook       Boolean  @default(false)
+  
+  // Медиа
+  images      String[]
+  
+  // Мета
+  views       Int           @default(0)
+  
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  
+  ownerId     String
+  owner       User          @relation(fields: [ownerId], references: [id])
+  
+  features    VehicleFeatureLink[]
+  bookings    VehicleBooking[]
+  reviews     VehicleReview[]
+  favorites   VehicleFavorite[]
+  availability VehicleAvailability[]
+  blockedDates VehicleBlockedDate[]
+}
+
+model VehicleFeature {
+  id       String   @id @default(cuid())
+  name     String   @unique  // GPS, Детское кресло, Камера заднего вида
+  icon     String
+  category String   // safety, comfort, entertainment, convenience
+  
+  vehicles VehicleFeatureLink[]
+}
+
+model VehicleFeatureLink {
+  vehicleId String
+  featureId String
+  
+  vehicle   Vehicle        @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  feature   VehicleFeature @relation(fields: [featureId], references: [id])
+  
+  @@id([vehicleId, featureId])
+}
+
+model VehicleBooking {
+  id            String        @id @default(cuid())
+  status        BookingStatus @default(PENDING)
+  
+  pickupDate    DateTime
+  pickupTime    String        // "10:00"
+  returnDate    DateTime
+  returnTime    String        // "18:00"
+  days          Int
+  
+  // Локация получения/возврата
+  pickupLocation   String
+  returnLocation   String
+  sameReturnLocation Boolean @default(true)
+  
+  // Цены на момент бронирования
+  pricePerDay   Float
+  totalDaysPrice Float
+  deposit       Float
+  deliveryFee   Float?
+  serviceFee    Float
+  totalPrice    Float
+  
+  // Платёж
+  paymentIntentId String?
+  paidAt          DateTime?
+  depositReturned Boolean   @default(false)
+  depositReturnedAt DateTime?
+  
+  // Отмена
+  cancelledAt     DateTime?
+  cancellationReason String?
+  refundAmount    Float?
+  
+  // Дополнительно
+  driverLicense   String?    // Загруженные права
+  specialRequests String?    @db.Text
+  mileageStart    Int?       // Пробег при выдаче
+  mileageEnd      Int?       // Пробег при возврате
+  
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  
+  vehicleId     String
+  vehicle       Vehicle       @relation(fields: [vehicleId], references: [id])
+  
+  renterId      String
+  renter        User          @relation("RenterBookings", fields: [renterId], references: [id])
+  
+  ownerId       String
+  owner         User          @relation("OwnerBookings", fields: [ownerId], references: [id])
+  
+  review        VehicleReview?
+  messages      Message[]
+  guestDetails  GuestDetails?  @relation("VehicleGuestDetails")
+  consents      UserConsent[]
+}
+
+model VehicleReview {
+  id          String   @id @default(cuid())
+  rating      Int      // 1-5
+  comment     String   @db.Text
+  
+  // Детальные оценки
+  cleanliness    Int?  // Чистота авто
+  accuracy       Int?  // Соответствие описанию
+  communication  Int?  // Общение с владельцем
+  convenience    Int?  // Удобство получения/возврата
+  condition      Int?  // Техническое состояние
+  valueForMoney  Int?  // Цена/качество
+  
+  createdAt   DateTime @default(now())
+  
+  vehicleId   String
+  vehicle     Vehicle  @relation(fields: [vehicleId], references: [id])
+  
+  bookingId   String   @unique
+  booking     VehicleBooking @relation(fields: [bookingId], references: [id])
+  
+  authorId    String
+  author      User     @relation(fields: [authorId], references: [id])
+}
+
+model VehicleFavorite {
+  userId    String
+  vehicleId String
+  createdAt DateTime @default(now())
+  
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vehicle   Vehicle  @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  
+  @@id([userId, vehicleId])
+}
+
+model VehicleAvailability {
+  id          String   @id @default(cuid())
+  date        DateTime
+  isAvailable Boolean  @default(true)
+  price       Float?   // Кастомная цена на дату
+  
+  vehicleId   String
+  vehicle     Vehicle  @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  
+  @@unique([vehicleId, date])
+}
+
+model VehicleBlockedDate {
+  id        String   @id @default(cuid())
+  startDate DateTime
+  endDate   DateTime
+  reason    String?
+  
+  vehicleId String
+  vehicle   Vehicle  @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ЮРИДИЧЕСКИЕ ДОКУМЕНТЫ И СОГЛАСИЯ
+// ═══════════════════════════════════════════════════════════════
+
+model LegalDocument {
+  id          String   @id @default(cuid())
+  type        String   // offer, rental_agreement, privacy_policy, house_rules
+  title       String
+  content     String   @db.Text // HTML/Markdown контент
+  version     String   // v1.0, v1.1
+  isActive    Boolean  @default(true)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  consents    UserConsent[]
+}
+
+model UserConsent {
+  id              String   @id @default(cuid())
+  
+  consentType     String   // offer, rental_agreement, privacy, house_rules
+  consentMethod   String   // online, verbal (устное подтверждение)
+  
+  // Данные для юридической силы
+  ipAddress       String?
+  userAgent       String?
+  timestamp       DateTime @default(now())
+  
+  // Если устное подтверждение
+  verbalConfirmedBy String?  // ID сотрудника, принявшего согласие
+  verbalNotes       String?  @db.Text
+  
+  userId          String?
+  documentId      String
+  bookingId       String?
+  vehicleBookingId String?
+  
+  document        LegalDocument @relation(fields: [documentId], references: [id])
+  booking         Booking?      @relation(fields: [bookingId], references: [id])
+  vehicleBooking  VehicleBooking? @relation(fields: [vehicleBookingId], references: [id])
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ССЫЛКИ ДЛЯ ШАРИНГА (Telegram-воронка)
+// ═══════════════════════════════════════════════════════════════
+
+model BookingLink {
+  id          String   @id @default(cuid())
+  code        String   @unique  // ABC123 - короткий код
+  
+  // Тип объекта
+  listingId   String?
+  vehicleId   String?
+  
+  // Предзаполненные данные
+  checkIn     DateTime?
+  checkOut    DateTime?
+  guests      Int?
+  
+  // Статистика
+  views       Int      @default(0)
+  isUsed      Boolean  @default(false)
+  usedAt      DateTime?
+  
+  // Срок действия
+  expiresAt   DateTime?
+  
+  // Кто создал ссылку
+  createdById String
+  createdAt   DateTime @default(now())
+  
+  // Результат
+  bookingId   String?  // ID созданного бронирования
+}
+
+// Модель для данных клиента (заполняется при бронировании)
+model GuestDetails {
+  id              String   @id @default(cuid())
+  
+  // Персональные данные для договора
+  fullName        String   // ФИО полностью
+  birthDate       DateTime
+  phone           String
+  email           String
+  
+  // Паспортные данные
+  passportSeries  String?
+  passportNumber  String
+  passportIssuedBy String
+  passportIssuedDate DateTime
+  registrationAddress String
+  
+  // Связь с бронированием
+  bookingId       String?  @unique
+  booking         Booking? @relation(fields: [bookingId], references: [id])
+  
+  vehicleBookingId String? @unique
+  vehicleBooking   VehicleBooking? @relation("VehicleGuestDetails", fields: [vehicleBookingId], references: [id])
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}

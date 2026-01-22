@@ -72,7 +72,7 @@ export default function VehicleCard({ vehicle, index = 0 }: VehicleCardProps) {
 
                         {/* Price tag */}
                         <div className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-sm rounded-lg px-3 py-1.5">
-                            <span className="text-white font-bold">{vehicle.pricePerDay.toLocaleString()} ₴</span>
+                            <span className="text-white font-bold">{vehicle.pricePerDay.toLocaleString()} ₽</span>
                             <span className="text-gray-300 text-sm"> / день</span>
                         </div>
                     </div>

@@ -10,6 +10,7 @@ export interface Vehicle {
     transmission: 'automatic' | 'manual';
     fuelType: 'petrol' | 'diesel' | 'electric' | 'hybrid';
     city: string;
+    address: string;
     pricePerDay: number;
     deposit: number;
     images: string[];
@@ -22,6 +23,9 @@ export interface Vehicle {
     ownerAvatar: string;
     instantBook: boolean;
     mileageLimit: number | null;
+    deliveryAvailable: boolean;
+    deliveryRadius: number | null;
+    deliveryPrice: number | null;
 }
 
 export const vehicles: Vehicle[] = [
@@ -35,13 +39,14 @@ export const vehicles: Vehicle[] = [
         type: 'sedan',
         transmission: 'automatic',
         fuelType: 'petrol',
-        city: 'Киев',
-        pricePerDay: 1800,
-        deposit: 10000,
+        city: 'Москва',
+        address: 'ул. Тверская, 22',
+        pricePerDay: 5000,
+        deposit: 30000,
         images: [
-            'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=800',
-            'https://images.unsplash.com/photo-1619767886558-efdc259cde1a?w=800',
-            'https://images.unsplash.com/photo-1550355291-bbee04a92027?w=800'
+            'https://picsum.photos/seed/camry1/800/600',
+            'https://picsum.photos/seed/camry2/800/600',
+            'https://picsum.photos/seed/camry3/800/600'
         ],
         seats: 5,
         doors: 4,
@@ -49,9 +54,12 @@ export const vehicles: Vehicle[] = [
         rating: 4.9,
         reviewsCount: 56,
         ownerName: 'Игорь',
-        ownerAvatar: 'https://i.pravatar.cc/150?img=4',
+        ownerAvatar: 'https://picsum.photos/seed/igor/150/150',
         instantBook: true,
-        mileageLimit: 300
+        mileageLimit: 300,
+        deliveryAvailable: true,
+        deliveryRadius: 15,
+        deliveryPrice: 1000
     },
     {
         id: '2',
@@ -63,13 +71,14 @@ export const vehicles: Vehicle[] = [
         type: 'suv',
         transmission: 'automatic',
         fuelType: 'diesel',
-        city: 'Киев',
-        pricePerDay: 4500,
-        deposit: 25000,
+        city: 'Москва',
+        address: 'ул. Новый Арбат, 16',
+        pricePerDay: 12000,
+        deposit: 80000,
         images: [
-            'https://images.unsplash.com/photo-1555215695-3004980ad54e?w=800',
-            'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800',
-            'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=800'
+            'https://picsum.photos/seed/bmwx5a/800/600',
+            'https://picsum.photos/seed/bmwx5b/800/600',
+            'https://picsum.photos/seed/bmwx5c/800/600'
         ],
         seats: 5,
         doors: 5,
@@ -77,65 +86,76 @@ export const vehicles: Vehicle[] = [
         rating: 4.95,
         reviewsCount: 34,
         ownerName: 'Александр',
-        ownerAvatar: 'https://i.pravatar.cc/150?img=7',
+        ownerAvatar: 'https://picsum.photos/seed/alex/150/150',
         instantBook: false,
-        mileageLimit: 250
+        mileageLimit: 250,
+        deliveryAvailable: true,
+        deliveryRadius: 20,
+        deliveryPrice: 1500
     },
     {
         id: '3',
-        title: 'Volkswagen ID.4 2023',
+        title: 'Tesla Model 3 2023',
         description: 'Современный электрокар с запасом хода 500 км. Экологично, экономично, стильно.',
-        make: 'Volkswagen',
-        model: 'ID.4',
+        make: 'Tesla',
+        model: 'Model 3',
         year: 2023,
         type: 'electric',
         transmission: 'automatic',
         fuelType: 'electric',
-        city: 'Львов',
-        pricePerDay: 2200,
-        deposit: 15000,
+        city: 'Санкт-Петербург',
+        address: 'Невский проспект, 100',
+        pricePerDay: 7000,
+        deposit: 50000,
         images: [
-            'https://images.unsplash.com/photo-1619317996009-7d0dbfeffb99?w=800',
-            'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800',
-            'https://images.unsplash.com/photo-1593941707882-a5bba14938c7?w=800'
+            'https://picsum.photos/seed/tesla3a/800/600',
+            'https://picsum.photos/seed/tesla3b/800/600',
+            'https://picsum.photos/seed/tesla3c/800/600'
         ],
         seats: 5,
-        doors: 5,
+        doors: 4,
         features: ['GPS навигация', 'Autopilot', 'Быстрая зарядка', 'Премиум аудио', 'Подогрев сидений'],
         rating: 4.85,
         reviewsCount: 28,
         ownerName: 'Марина',
-        ownerAvatar: 'https://i.pravatar.cc/150?img=10',
+        ownerAvatar: 'https://picsum.photos/seed/marina/150/150',
         instantBook: true,
-        mileageLimit: null
+        mileageLimit: null,
+        deliveryAvailable: true,
+        deliveryRadius: 10,
+        deliveryPrice: 800
     },
     {
         id: '4',
-        title: 'Toyota Sienna 2022',
-        description: 'Просторный минивэн для семейных путешествий. 8 мест, огромный багажник, гибридный двигатель.',
+        title: 'Toyota Alphard 2022',
+        description: 'Просторный минивэн для семейных путешествий. 7 мест, огромный багажник, максимальный комфорт.',
         make: 'Toyota',
-        model: 'Sienna',
+        model: 'Alphard',
         year: 2022,
         type: 'minivan',
         transmission: 'automatic',
         fuelType: 'hybrid',
-        city: 'Одесса',
-        pricePerDay: 2800,
-        deposit: 15000,
+        city: 'Сочи',
+        address: 'ул. Курортный проспект, 15',
+        pricePerDay: 8000,
+        deposit: 50000,
         images: [
-            'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=800',
-            'https://images.unsplash.com/photo-1571127236794-81c0bbfe1ce3?w=800',
-            'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=800'
+            'https://picsum.photos/seed/alphard1/800/600',
+            'https://picsum.photos/seed/alphard2/800/600',
+            'https://picsum.photos/seed/alphard3/800/600'
         ],
-        seats: 8,
+        seats: 7,
         doors: 5,
         features: ['GPS навигация', 'Детские кресла', 'DVD система', 'Климат-контроль', 'Камеры 360°'],
         rating: 4.8,
         reviewsCount: 19,
         ownerName: 'Сергей',
-        ownerAvatar: 'https://i.pravatar.cc/150?img=11',
+        ownerAvatar: 'https://picsum.photos/seed/sergey/150/150',
         instantBook: true,
-        mileageLimit: 400
+        mileageLimit: 400,
+        deliveryAvailable: true,
+        deliveryRadius: 30,
+        deliveryPrice: 2000
     },
     {
         id: '5',
@@ -147,13 +167,14 @@ export const vehicles: Vehicle[] = [
         type: 'luxury',
         transmission: 'automatic',
         fuelType: 'petrol',
-        city: 'Киев',
-        pricePerDay: 8000,
-        deposit: 50000,
+        city: 'Москва',
+        address: 'ул. Остоженка, 10',
+        pricePerDay: 20000,
+        deposit: 150000,
         images: [
-            'https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=800',
-            'https://images.unsplash.com/photo-1617469767053-d3b523a0b982?w=800',
-            'https://images.unsplash.com/photo-1563720223185-11003d516935?w=800'
+            'https://picsum.photos/seed/sclass1/800/600',
+            'https://picsum.photos/seed/sclass2/800/600',
+            'https://picsum.photos/seed/sclass3/800/600'
         ],
         seats: 5,
         doors: 4,
@@ -161,36 +182,107 @@ export const vehicles: Vehicle[] = [
         rating: 5.0,
         reviewsCount: 12,
         ownerName: 'Владислав',
-        ownerAvatar: 'https://i.pravatar.cc/150?img=13',
+        ownerAvatar: 'https://picsum.photos/seed/vlad/150/150',
         instantBook: false,
-        mileageLimit: 200
+        mileageLimit: 200,
+        deliveryAvailable: true,
+        deliveryRadius: 30,
+        deliveryPrice: 3000
     },
     {
         id: '6',
-        title: 'Volkswagen Polo 2023',
-        description: 'Экономичный хэтчбек для города. Компактный, маневренный, низкий расход топлива.',
-        make: 'Volkswagen',
-        model: 'Polo',
+        title: 'Kia Rio 2023',
+        description: 'Экономичный седан для города. Компактный, маневренный, низкий расход топлива.',
+        make: 'Kia',
+        model: 'Rio',
         year: 2023,
-        type: 'hatchback',
-        transmission: 'manual',
+        type: 'sedan',
+        transmission: 'automatic',
         fuelType: 'petrol',
-        city: 'Харьков',
-        pricePerDay: 1200,
-        deposit: 8000,
+        city: 'Казань',
+        address: 'ул. Баумана, 45',
+        pricePerDay: 3000,
+        deposit: 20000,
         images: [
-            'https://images.unsplash.com/photo-1609521263047-f8f205293f24?w=800',
-            'https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=800',
-            'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=800'
+            'https://picsum.photos/seed/rio1/800/600',
+            'https://picsum.photos/seed/rio2/800/600',
+            'https://picsum.photos/seed/rio3/800/600'
         ],
         seats: 5,
-        doors: 5,
+        doors: 4,
         features: ['GPS навигация', 'Bluetooth', 'Кондиционер', 'USB зарядка'],
         rating: 4.7,
         reviewsCount: 41,
         ownerName: 'Наталья',
-        ownerAvatar: 'https://i.pravatar.cc/150?img=16',
+        ownerAvatar: 'https://picsum.photos/seed/natasha/150/150',
         instantBook: true,
-        mileageLimit: 350
+        mileageLimit: 350,
+        deliveryAvailable: true,
+        deliveryRadius: 10,
+        deliveryPrice: 500
+    },
+    {
+        id: '7',
+        title: 'Porsche Cayenne 2023',
+        description: 'Спортивный внедорожник премиум-класса. Мощность, динамика и роскошь в одном автомобиле.',
+        make: 'Porsche',
+        model: 'Cayenne',
+        year: 2023,
+        type: 'suv',
+        transmission: 'automatic',
+        fuelType: 'petrol',
+        city: 'Санкт-Петербург',
+        address: 'Каменноостровский проспект, 25',
+        pricePerDay: 15000,
+        deposit: 100000,
+        images: [
+            'https://picsum.photos/seed/cayenne1/800/600',
+            'https://picsum.photos/seed/cayenne2/800/600',
+            'https://picsum.photos/seed/cayenne3/800/600'
+        ],
+        seats: 5,
+        doors: 5,
+        features: ['Sport Chrono', 'Панорамная крыша', 'Bose аудио', 'Адаптивный круиз', 'Парктроники'],
+        rating: 4.9,
+        reviewsCount: 18,
+        ownerName: 'Артём',
+        ownerAvatar: 'https://picsum.photos/seed/artem/150/150',
+        instantBook: false,
+        mileageLimit: 200,
+        deliveryAvailable: true,
+        deliveryRadius: 25,
+        deliveryPrice: 2000
+    },
+    {
+        id: '8',
+        title: 'Hyundai Solaris 2023',
+        description: 'Надёжный и экономичный автомобиль для города и путешествий. Идеален для аренды.',
+        make: 'Hyundai',
+        model: 'Solaris',
+        year: 2023,
+        type: 'sedan',
+        transmission: 'automatic',
+        fuelType: 'petrol',
+        city: 'Краснодар',
+        address: 'ул. Красная, 100',
+        pricePerDay: 2500,
+        deposit: 15000,
+        images: [
+            'https://picsum.photos/seed/solaris1/800/600',
+            'https://picsum.photos/seed/solaris2/800/600',
+            'https://picsum.photos/seed/solaris3/800/600'
+        ],
+        seats: 5,
+        doors: 4,
+        features: ['Кондиционер', 'Bluetooth', 'USB зарядка', 'Подогрев сидений'],
+        rating: 4.6,
+        reviewsCount: 35,
+        ownerName: 'Павел',
+        ownerAvatar: 'https://picsum.photos/seed/pavel/150/150',
+        instantBook: true,
+        mileageLimit: 400,
+        deliveryAvailable: false,
+        deliveryRadius: null,
+        deliveryPrice: null
     }
 ];

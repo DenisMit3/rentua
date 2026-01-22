@@ -55,7 +55,7 @@ export default function ListingCard({ listing, index = 0 }: ListingCardProps) {
 
                         {/* Price tag */}
                         <div className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-sm rounded-lg px-3 py-1.5">
-                            <span className="text-white font-bold">{listing.pricePerNight.toLocaleString()} ₴</span>
+                            <span className="text-white font-bold">{listing.pricePerNight.toLocaleString()} ₽</span>
                             <span className="text-gray-300 text-sm"> / ночь</span>
                         </div>
                     </div>

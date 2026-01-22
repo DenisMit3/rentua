@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import Providers from "@/components/Providers";
 
 const inter = Inter({
   subsets: ["latin", "cyrillic"],
@@ -10,14 +11,14 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "RentUA — Аренда жилья и автомобилей в Украине",
-  description: "Посуточная аренда квартир, домов и автомобилей по всей Украине. Быстрое бронирование, низкие цены, надёжные владельцы.",
-  keywords: "аренда жилья, аренда квартир, аренда авто, посуточно, Киев, Одесса, Львов, Украина",
+  title: "RentRF — Аренда жилья и автомобилей в России",
+  description: "Посуточная аренда квартир, домов и автомобилей по всей России. Быстрое бронирование, низкие цены, надёжные владельцы.",
+  keywords: "аренда жилья, аренда квартир, аренда авто, посуточно, Москва, Санкт-Петербург, Сочи, Россия",
   openGraph: {
-    title: "RentUA — Аренда жилья и автомобилей",
-    description: "Посуточная аренда квартир, домов и автомобилей по всей Украине",
+    title: "RentRF — Аренда жилья и автомобилей",
+    description: "Посуточная аренда квартир, домов и автомобилей по всей России",
     type: "website",
-    locale: "ru_UA",
+    locale: "ru_RU",
   },
 };
 
@@ -29,11 +30,13 @@ export default function RootLayout({
   return (
     <html lang="ru">
       <body className={`${inter.variable} font-sans antialiased`}>
-        <Header />
-        <main className="min-h-screen">
-          {children}
-        </main>
-        <Footer />
+        <Providers>
+          <Header />
+          <main className="min-h-screen">
+            {children}
+          </main>
+          <Footer />
+        </Providers>
       </body>
     </html>
   );

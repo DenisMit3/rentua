@@ -34,7 +34,7 @@ export default function HomePage() {
         <div className="absolute inset-0">
           <div className="absolute inset-0 bg-gradient-to-br from-indigo-900/90 via-purple-900/80 to-rose-900/70 z-10" />
           <Image
-            src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1920"
+            src="https://picsum.photos/seed/moscow_night/1920/1080"
             alt="Hero Background"
             fill
             className="object-cover"
@@ -72,7 +72,7 @@ export default function HomePage() {
             >
               <span className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2 text-sm text-white/80 mb-6">
                 <Sparkles size={16} className="text-yellow-400" />
-                Аренда по всей Украине
+                Аренда по всей России
               </span>
             </motion.div>
 
@@ -164,7 +164,7 @@ export default function HomePage() {
         <div className="container">
           <div className="text-center mb-12">
             <h2 className="section-title text-white">
-              Почему выбирают <span className="text-gradient">RentUA</span>
+              Почему выбирают <span className="text-gradient">RentRF</span>
             </h2>
             <p className="section-subtitle mx-auto">
               Мы делаем аренду простой, безопасной и приятной
@@ -270,7 +270,7 @@ export default function HomePage() {
         <div className="container">
           <div className="text-center mb-12">
             <h2 className="section-title text-white">
-              Работаем по всей <span className="text-gradient">Украине</span>
+              Работаем по всей <span className="text-gradient">России</span>
             </h2>
             <p className="section-subtitle mx-auto">
               Выберите город для поиска жилья или авто
@@ -279,10 +279,10 @@ export default function HomePage() {
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
-              { city: 'Киев', image: 'https://images.unsplash.com/photo-1561542320-9a18cd340469?w=400', count: 234 },
-              { city: 'Одесса', image: 'https://images.unsplash.com/photo-1555993539-1732b0258235?w=400', count: 187 },
-              { city: 'Львов', image: 'https://images.unsplash.com/photo-1577086664693-894d8a11fe8d?w=400', count: 156 },
-              { city: 'Харьков', image: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400', count: 98 }
+              { city: 'Москва', image: 'https://picsum.photos/seed/moscow/400/300', count: 234 },
+              { city: 'Санкт-Петербург', image: 'https://picsum.photos/seed/spb/400/300', count: 187 },
+              { city: 'Сочи', image: 'https://picsum.photos/seed/sochi/400/300', count: 156 },
+              { city: 'Казань', image: 'https://picsum.photos/seed/kazan/400/300', count: 98 }
             ].map((item, index) => (
               <motion.div
                 key={item.city}
@@ -338,19 +338,19 @@ export default function HomePage() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a
-                href="https://t.me/rentua"
+                href="https://t.me/MikhalinaAnn"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="btn bg-white text-gray-900 hover:bg-gray-100"
               >
                 <MessageCircle size={20} />
-                Написать в Telegram
+                Написать Анне в Telegram
               </a>
               <a
-                href="tel:+380991234567"
+                href="tel:+79818188279"
                 className="btn btn-outline border-white text-white hover:bg-white/10"
               >
-                Позвонить: +380 99 123 45 67
+                Позвонить: +7 981 818 8279
               </a>
             </div>
           </div>
