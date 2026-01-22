@@ -32,10 +32,10 @@ export default function HomePage() {
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
         {/* Background */}
         <div className="absolute inset-0">
-          <div className="absolute inset-0 bg-gradient-to-br from-indigo-900/90 via-purple-900/80 to-rose-900/70 z-10" />
+          <div className="absolute inset-0 bg-gradient-to-br from-indigo-900/80 via-purple-900/70 to-rose-900/60 z-10" />
           <Image
-            src="https://picsum.photos/seed/moscow_night/1920/1080"
-            alt="Hero Background"
+            src="https://images.unsplash.com/photo-1513326738677-b964603b136d?auto=format&fit=crop&q=80&w=1920"
+            alt="Moscow Night"
             fill
             className="object-cover"
             priority
@@ -44,6 +44,7 @@ export default function HomePage() {
 
         {/* Animated shapes */}
         <div className="absolute inset-0 z-10 overflow-hidden">
+          {/* ... (motion divs skip for brevity if not changing, but I must output contiguous block) ... */}
           <motion.div
             className="absolute top-20 left-10 w-72 h-72 bg-indigo-500/20 rounded-full blur-3xl"
             animate={{
@@ -99,21 +100,21 @@ export default function HomePage() {
 
             {/* Search tabs */}
             <motion.div
-              className="bg-white/10 backdrop-blur-xl rounded-2xl p-2 mb-8 inline-flex gap-2"
+              className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12"
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.3 }}
             >
               <Link
                 href="/listings"
-                className="flex items-center gap-2 px-6 py-3 bg-white text-gray-900 rounded-xl font-semibold transition-all hover:bg-gray-100"
+                className="btn btn-primary text-lg px-8 py-4"
               >
                 <Home size={20} />
                 Найти жильё
               </Link>
               <Link
                 href="/cars"
-                className="flex items-center gap-2 px-6 py-3 text-white rounded-xl font-semibold transition-all hover:bg-white/10"
+                className="btn btn-secondary text-lg px-8 py-4"
               >
                 <Car size={20} />
                 Найти авто
