@@ -682,64 +682,71 @@ export async function GET(request: Request) {
             amenityMap.set(amenityName, amenity.id);
         }
 
-        // 3. Create Listings
+        // 3. Create Listings (Using SQL to bypass array type mismatch issues)
         let createdListingsCount = 0;
         for (const l of listingsData) {
             const slug = `${l.title.toLowerCase().replace(/[^a-z0-9а-яё]+/g, '-').replace(/^-|-$/g, '')}-${l.id}`;
+            // Format images for Postgres array literal: {url1,url2}
+            const imagesSql = `{${l.images.map(img => `"${img}"`).join(',')}}`;
 
-            const listing = await prisma.listing.upsert({
-                where: { slug: slug },
-                update: {
-                    title: l.title,
-                    description: l.description,
-                    pricePerNight: l.pricePerNight,
-                    cleaningFee: l.cleaningFee,
-                    images: l.images,
-                    bedrooms: l.bedrooms,
-                    beds: l.beds,
-                    bathrooms: l.bathrooms,
-                    maxGuests: l.maxGuests,
-                    instantBook: l.instantBook,
-                    hasSauna: (l as any).hasSauna || false,
-                    saunaPrice: (l as any).saunaPrice || null,
-                },
-                create: {
-                    title: l.title,
-                    description: l.description,
-                    slug: slug,
-                    status: "ACTIVE",
-                    country: 'Россия',
-                    city: l.city,
-                    address: l.address,
-                    latitude: 55.75 + Math.random() * 0.1,
-                    longitude: 37.61 + Math.random() * 0.1,
-                    propertyType: l.type,
-                    rooms: l.bedrooms + 1,
-                    bedrooms: l.bedrooms,
-                    beds: l.beds,
-                    bathrooms: l.bathrooms,
-                    maxGuests: l.maxGuests,
-                    floor: 1,
-                    totalFloors: 5,
-                    area: 50 + l.bedrooms * 20,
-                    pricePerNight: l.pricePerNight,
-                    cleaningFee: l.cleaningFee,
-                    instantBook: l.instantBook,
-                    images: l.images,
-                    hostId: host.id,
-                    hasSauna: (l as any).hasSauna || false,
-                    saunaPrice: (l as any).saunaPrice || null,
-                }
-            });
+            // We use standard string interpolation carefully.
+            // ID: use loop ID as slug-suffix or just random? We use l.id from data.
+            const listingId = `listing_${l.id}`;
+
+            const insertSql = `
+                INSERT INTO "Listing" (
+                    "id", "title", "description", "slug", "status", "country", "city", "address",
+                    "latitude", "longitude", "propertyType", "rooms", "bedrooms", "beds", "bathrooms",
+                    "maxGuests", "floor", "totalFloors", "area", "pricePerNight", "cleaningFee",
+                    "instantBook", "images", "hasSauna", "saunaPrice", "hostId", "updatedAt"
+                ) VALUES (
+                    '${listingId}',
+                    '${l.title}',
+                    '${l.description.replace(/'/g, "''")}',
+                    '${slug}',
+                    'ACTIVE',
+                    'Россия',
+                    '${l.city}',
+                    '${l.address}',
+                    ${55.75 + Math.random() * 0.1},
+                    ${37.61 + Math.random() * 0.1},
+                    '${l.type}',
+                    ${l.bedrooms + 1},
+                    ${l.bedrooms},
+                    ${l.beds},
+                    ${l.bathrooms},
+                    ${l.maxGuests},
+                    1,
+                    5,
+                    ${50 + l.bedrooms * 20},
+                    ${l.pricePerNight},
+                    ${l.cleaningFee},
+                    ${l.instantBook},
+                    '${imagesSql}',
+                    ${(l as any).hasSauna || false},
+                    ${(l as any).saunaPrice || 'NULL'},
+                    '${host.id}',
+                    NOW()
+                )
+                ON CONFLICT ("slug") DO UPDATE SET
+                    "title" = EXCLUDED."title",
+                    "description" = EXCLUDED."description",
+                    "pricePerNight" = EXCLUDED."pricePerNight",
+                    "images" = EXCLUDED."images",
+                    "updatedAt" = NOW()
+                RETURNING "id";
+            `;
+
+            await prisma.$executeRawUnsafe(insertSql);
 
             // Link Amenities
-            await prisma.listingAmenity.deleteMany({ where: { listingId: listing.id } });
+            await prisma.listingAmenity.deleteMany({ where: { listingId: listingId } });
 
             for (const amName of l.amenities) {
                 const amId = amenityMap.get(amName);
                 if (amId) {
                     await prisma.listingAmenity.create({
-                        data: { listingId: listing.id, amenityId: amId }
+                        data: { listingId: listingId, amenityId: amId }
                     });
                 }
             }
@@ -764,76 +771,69 @@ export async function GET(request: Request) {
             featureMap.set(featureName, feature.id);
         }
 
-        // 5. Create Vehicles
+        // 5. Create Vehicles (Using SQL)
         let createdVehiclesCount = 0;
         for (const v of vehiclesData) {
             const slug = `${v.make.toLowerCase()}-${v.model.toLowerCase()}-${v.year}-${v.id}`.replace(/[^a-z0-9]+/g, '-');
+            const imagesSql = `{${v.images.map(img => `"${img}"`).join(',')}}`;
+            const vehicleId = `vehicle_${v.id}`;
 
-            const vehicle = await prisma.vehicle.upsert({
-                where: { slug: slug },
-                update: {
-                    title: v.title,
-                    description: v.description,
-                    make: v.make,
-                    model: v.model,
-                    year: v.year,
-                    vehicleType: v.type.toUpperCase() as any,
-                    transmission: v.transmission.toUpperCase() as any,
-                    fuelType: v.fuelType.toUpperCase() as any,
-                    pricePerDay: v.pricePerDay,
-                    deposit: v.deposit,
-                    images: v.images,
-                    seats: v.seats,
-                    doors: v.doors,
-                    mileageLimit: v.mileageLimit,
-                    deliveryAvailable: v.deliveryAvailable,
-                    deliveryRadius: v.deliveryRadius,
-                    deliveryPrice: v.deliveryPrice,
-                    instantBook: v.instantBook,
-                    ownerId: host.id,
-                },
-                create: {
-                    title: v.title,
-                    description: v.description,
-                    slug: slug,
-                    status: 'ACTIVE',
-                    make: v.make,
-                    model: v.model,
-                    year: v.year,
-                    color: 'Black',
-                    vehicleType: v.type.toUpperCase() as any,
-                    transmission: v.transmission.toUpperCase() as any,
-                    fuelType: v.fuelType.toUpperCase() as any,
-                    seats: v.seats,
-                    doors: v.doors,
-                    city: v.city,
-                    address: v.address,
-                    latitude: 55.75 + Math.random() * 0.1,
-                    longitude: 37.61 + Math.random() * 0.1,
-                    pricePerDay: v.pricePerDay,
-                    deposit: v.deposit,
-                    minRentalDays: 1,
-                    maxRentalDays: 30,
-                    minDriverAge: 21,
-                    minDrivingExp: 2,
-                    mileageLimit: v.mileageLimit,
-                    deliveryAvailable: v.deliveryAvailable,
-                    deliveryRadius: v.deliveryRadius,
-                    deliveryPrice: v.deliveryPrice,
-                    instantBook: v.instantBook,
-                    images: v.images,
-                    ownerId: host.id,
-                }
-            });
+            const insertSql = `
+                INSERT INTO "Vehicle" (
+                    "id", "title", "description", "slug", "status", "make", "model", "year",
+                    "color", "vehicleType", "transmission", "fuelType", "seats", "doors",
+                    "city", "address", "latitude", "longitude",
+                    "pricePerDay", "deposit", "minRentalDays", "maxRentalDays", "minDriverAge",
+                    "minDrivingExp", "mileageLimit", "deliveryAvailable", "deliveryRadius",
+                    "deliveryPrice", "instantBook", "images", "ownerId", "updatedAt"
+                ) VALUES (
+                    '${vehicleId}',
+                    '${v.title}',
+                    '${v.description.replace(/'/g, "''")}',
+                    '${slug}',
+                    'ACTIVE',
+                    '${v.make}',
+                    '${v.model}',
+                    ${v.year},
+                    'Black',
+                    '${v.type.toUpperCase()}',
+                    '${v.transmission.toUpperCase()}',
+                    '${v.fuelType.toUpperCase()}',
+                    ${v.seats},
+                    ${v.doors},
+                    '${v.city}',
+                    '${v.address}',
+                    ${55.75 + Math.random() * 0.1},
+                    ${37.61 + Math.random() * 0.1},
+                    ${v.pricePerDay},
+                    ${v.deposit},
+                    1, 30, 21, 2,
+                    ${v.mileageLimit || 'NULL'},
+                    ${v.deliveryAvailable},
+                    ${v.deliveryRadius || 'NULL'},
+                    ${v.deliveryPrice || 'NULL'},
+                    ${v.instantBook},
+                    '${imagesSql}',
+                    '${host.id}',
+                    NOW()
+                )
+                 ON CONFLICT ("slug") DO UPDATE SET
+                    "title" = EXCLUDED."title",
+                    "pricePerDay" = EXCLUDED."pricePerDay",
+                    "images" = EXCLUDED."images",
+                    "updatedAt" = NOW()
+            `;
+
+            await prisma.$executeRawUnsafe(insertSql);
 
             // Link Features
-            await prisma.vehicleFeatureLink.deleteMany({ where: { vehicleId: vehicle.id } });
+            await prisma.vehicleFeatureLink.deleteMany({ where: { vehicleId: vehicleId } });
 
             for (const fName of v.features) {
                 const fId = featureMap.get(fName);
                 if (fId) {
                     await prisma.vehicleFeatureLink.create({
-                        data: { vehicleId: vehicle.id, featureId: fId }
+                        data: { vehicleId: vehicleId, featureId: fId }
                     });
                 }
             }
