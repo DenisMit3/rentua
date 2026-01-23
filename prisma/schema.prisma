@@ -7,61 +7,16 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
-// ═══════════════════════════════════════════════════════════════
-// ENUMS
-// ═══════════════════════════════════════════════════════════════
-
-enum UserRole {
-  USER
-  HOST
-  ADMIN
-}
-
-enum BookingStatus {
-  PENDING
-  CONFIRMED
-  CANCELLED
-  COMPLETED
-}
-
-enum ListingStatus {
-  DRAFT
-  PENDING_REVIEW
-  ACTIVE
-  INACTIVE
-  REJECTED
-}
-
-enum VehicleType {
-  SEDAN
-  SUV
-  HATCHBACK
-  COUPE
-  CONVERTIBLE
-  MINIVAN
-  PICKUP
-  ELECTRIC
-  LUXURY
-}
-
-enum TransmissionType {
-  AUTOMATIC
-  MANUAL
-}
-
-enum FuelType {
-  PETROL
-  DIESEL
-  ELECTRIC
-  HYBRID
-  LPG
-}
-
-// ═══════════════════════════════════════════════════════════════
-// USER & AUTH
-// ═══════════════════════════════════════════════════════════════
+// ENUMS - REMOVED FOR SQLITE
+// enum UserRole ...
+// enum BookingStatus ...
+// enum ListingStatus ...
+// enum VehicleType ...
+// enum TransmissionType ...
+// enum FuelType ...
 
 model User {
   id            String    @id @default(cuid())
@@ -71,7 +26,7 @@ model User {
   name          String?
   phone         String?
   avatar        String?
-  role          UserRole  @default(USER)
+  role          String    @default("USER")
   isVerified    Boolean   @default(false)
   
   createdAt     DateTime  @default(now())
@@ -104,12 +59,12 @@ model Account {
   type              String
   provider          String
   providerAccountId String
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
+  refresh_token     String? 
+  access_token      String? 
   expires_at        Int?
   token_type        String?
   scope             String?
-  id_token          String? @db.Text
+  id_token          String? 
   
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   
@@ -132,16 +87,12 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
-// ═══════════════════════════════════════════════════════════════
-// LISTINGS (ЖИЛЬЁ)
-// ═══════════════════════════════════════════════════════════════
-
 model Listing {
   id          String        @id @default(cuid())
   title       String
-  description String        @db.Text
+  description String
   slug        String        @unique
-  status      ListingStatus @default(DRAFT)
+  status      String        @default("DRAFT")
   
   // Локация
   country     String
@@ -176,7 +127,11 @@ model Listing {
   instantBook   Boolean      @default(false)
   
   // Медиа
-  images      String[]
+  images      String        @default("[]")
+  
+  // Сауна
+  hasSauna    Boolean       @default(false)
+  saunaPrice  Float?        // Цена за пользование сауной
   
   // Мета
   views       Int           @default(0)
@@ -216,7 +171,7 @@ model ListingAmenity {
 
 model Booking {
   id            String        @id @default(cuid())
-  status        BookingStatus @default(PENDING)
+  status        String        @default("PENDING")
   
   checkIn       DateTime
   checkOut      DateTime
@@ -237,8 +192,12 @@ model Booking {
   cancelledAt     DateTime?
   cancellationReason String?
   refundAmount    Float?
+
+  // Доп. услуги
+  saunaIncluded   Boolean       @default(false)
+  saunaPrice      Float?        
   
-  specialRequests String? @db.Text
+  specialRequests String? 
   
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
@@ -258,10 +217,11 @@ model Booking {
   consents      UserConsent[]
 }
 
+
 model Review {
   id          String   @id @default(cuid())
   rating      Int      // 1-5
-  comment     String   @db.Text
+  comment     String   
   
   // Детальные оценки
   cleanliness Int?
@@ -318,7 +278,7 @@ model BlockedDate {
 
 model Message {
   id        String   @id @default(cuid())
-  content   String   @db.Text
+  content   String   
   isRead    Boolean  @default(false)
   
   createdAt DateTime @default(now())
@@ -338,7 +298,7 @@ model Notification {
   title     String
   message   String
   isRead    Boolean  @default(false)
-  data      Json?
+  data      String?
   
   createdAt DateTime @default(now())
   
@@ -353,9 +313,9 @@ model Notification {
 model Vehicle {
   id          String        @id @default(cuid())
   title       String
-  description String        @db.Text
+  description String        
   slug        String        @unique
-  status      ListingStatus @default(DRAFT)
+  status      String        @default("DRAFT")
   
   // Основная информация
   make        String        // Марка (Toyota, BMW, Mercedes)
@@ -366,9 +326,9 @@ model Vehicle {
   vin         String?       // VIN-код
   
   // Тип и характеристики
-  vehicleType    VehicleType
-  transmission   TransmissionType
-  fuelType       FuelType
+  vehicleType    String
+  transmission   String
+  fuelType       String
   seats          Int           // Количество мест
   doors          Int           // Количество дверей
   engineVolume   Float?        // Объём двигателя (л)
@@ -400,7 +360,7 @@ model Vehicle {
   instantBook       Boolean  @default(false)
   
   // Медиа
-  images      String[]
+  images      String        @default("[]")
   
   // Мета
   views       Int           @default(0)
@@ -440,7 +400,7 @@ model VehicleFeatureLink {
 
 model VehicleBooking {
   id            String        @id @default(cuid())
-  status        BookingStatus @default(PENDING)
+  status        String        @default("PENDING")
   
   pickupDate    DateTime
   pickupTime    String        // "10:00"
@@ -474,7 +434,7 @@ model VehicleBooking {
   
   // Дополнительно
   driverLicense   String?    // Загруженные права
-  specialRequests String?    @db.Text
+  specialRequests String?    
   mileageStart    Int?       // Пробег при выдаче
   mileageEnd      Int?       // Пробег при возврате
   
@@ -499,7 +459,7 @@ model VehicleBooking {
 model VehicleReview {
   id          String   @id @default(cuid())
   rating      Int      // 1-5
-  comment     String   @db.Text
+  comment     String   
   
   // Детальные оценки
   cleanliness    Int?  // Чистота авто
@@ -562,7 +522,7 @@ model LegalDocument {
   id          String   @id @default(cuid())
   type        String   // offer, rental_agreement, privacy_policy, house_rules
   title       String
-  content     String   @db.Text // HTML/Markdown контент
+  content     String    // HTML/Markdown контент
   version     String   // v1.0, v1.1
   isActive    Boolean  @default(true)
   
@@ -585,7 +545,7 @@ model UserConsent {
   
   // Если устное подтверждение
   verbalConfirmedBy String?  // ID сотрудника, принявшего согласие
-  verbalNotes       String?  @db.Text
+  verbalNotes       String?  
   
   userId          String?
   documentId      String

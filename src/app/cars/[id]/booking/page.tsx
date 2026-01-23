@@ -1,6 +1,6 @@
 'use client';
 
-import { use, useState } from 'react';
+import { use, useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
@@ -20,7 +20,7 @@ import {
     Car,
     Upload
 } from 'lucide-react';
-import { vehicles } from '@/data/vehicles';
+import { Vehicle } from '@/data/vehicles';
 import { notFound } from 'next/navigation';
 
 interface PageProps {
@@ -229,7 +229,28 @@ const PRIVACY_POLICY_TEXT = `СОГЛАСИЕ НА ОБРАБОТКУ ПЕРСО
 
 export default function CarBookingPage({ params }: PageProps) {
     const { id } = use(params);
-    const vehicle = vehicles.find(v => v.id === id);
+    const [vehicle, setVehicle] = useState<Vehicle | null>(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        if (!id) return;
+        async function fetchVehicle() {
+            try {
+                const res = await fetch(`/api/cars/${id}`);
+                if (!res.ok) {
+                    if (res.status === 404) notFound();
+                    throw new Error('Failed to fetch');
+                }
+                const data = await res.json();
+                setVehicle(data);
+            } catch (error) {
+                console.error(error);
+            } finally {
+                setLoading(false);
+            }
+        }
+        fetchVehicle();
+    }, [id]);
 
     const [step, setStep] = useState(1);
     const [isLoading, setIsLoading] = useState(false);
@@ -286,8 +307,17 @@ export default function CarBookingPage({ params }: PageProps) {
     // Модальные окна
     const [activeModal, setActiveModal] = useState<'offer' | 'rental' | 'privacy' | null>(null);
 
+    if (loading) {
+        return (
+            <div className="min-h-screen pt-24 pb-16 flex items-center justify-center">
+                <div className="text-white">Загрузка...</div>
+            </div>
+        );
+    }
+
     if (!vehicle) {
-        notFound();
+        // Handled by notFound() inside effect usually
+        return null;
     }
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -335,9 +365,56 @@ export default function CarBookingPage({ params }: PageProps) {
     const handleSubmit = async () => {
         if (!canProceedToPayment()) return;
         setIsLoading(true);
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        setIsLoading(false);
-        setStep(3);
+
+        try {
+            const response = await fetch('/api/vehicle-bookings', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    vehicleId: vehicle.id,
+                    pickupDate: formData.pickupDate,
+                    pickupTime: formData.pickupTime,
+                    returnDate: formData.returnDate,
+                    returnTime: formData.returnTime,
+                    pickupLocation: formData.pickupLocation,
+                    returnLocation: formData.pickupLocation, // Пока используем то же место
+                    deliveryRequested: formData.deliveryRequested,
+                    guestDetails: {
+                        fullName: formData.fullName,
+                        birthDate: formData.birthDate,
+                        phone: formData.phone,
+                        email: formData.email,
+                        passportSeries: formData.passportSeries,
+                        passportNumber: formData.passportNumber,
+                        passportIssuedBy: formData.passportIssuedBy,
+                        passportIssuedDate: formData.passportIssuedDate,
+                        registrationAddress: formData.registrationAddress,
+                    },
+                    driverLicense: {
+                        number: formData.licenseNumber,
+                        issuedDate: formData.licenseIssuedDate,
+                        expiryDate: formData.licenseExpiryDate,
+                        experience: formData.drivingExperience
+                    },
+                    consents: consents,
+                    specialRequests: formData.specialRequests
+                }),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Ошибка при создании бронирования');
+            }
+
+            setStep(3);
+        } catch (error) {
+            console.error('Booking error:', error);
+            alert(error instanceof Error ? error.message : 'Произошла ошибка при бронировании. Пожалуйста, попробуйте снова.');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     // Расчёт цены

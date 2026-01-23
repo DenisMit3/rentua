@@ -1,6 +1,6 @@
 'use client';
 
-import { use, useState } from 'react';
+import { use, useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
@@ -14,9 +14,10 @@ import {
     Shield,
     AlertCircle,
     Loader2,
-    ExternalLink
+    ExternalLink,
+    Waves
 } from 'lucide-react';
-import { listings } from '@/data/listings';
+import { Listing } from '@/data/listings';
 import { notFound } from 'next/navigation';
 
 interface PageProps {
@@ -214,10 +215,30 @@ const PRIVACY_POLICY_TEXT = `СОГЛАСИЕ НА ОБРАБОТКУ ПЕРСО
 
 export default function BookingPage({ params }: PageProps) {
     const { id } = use(params);
-    const listing = listings.find(l => l.id === id);
+    const [listing, setListing] = useState<Listing | null>(null);
+    const [isLoadingListing, setIsLoadingListing] = useState(true);
 
     const [step, setStep] = useState(1);
     const [isLoading, setIsLoading] = useState(false);
+
+    useEffect(() => {
+        const fetchListing = async () => {
+            try {
+                const res = await fetch(`/api/listings/${id}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    setListing(data);
+                } else {
+                    setListing(null);
+                }
+            } catch (error) {
+                console.error('Failed to fetch listing:', error);
+            } finally {
+                setIsLoadingListing(false);
+            }
+        };
+        fetchListing();
+    }, [id]);
 
     // Форма данных
     const [formData, setFormData] = useState({
@@ -235,7 +256,8 @@ export default function BookingPage({ params }: PageProps) {
         passportIssuedBy: '',
         passportIssuedDate: '',
         registrationAddress: '',
-        specialRequests: ''
+        specialRequests: '',
+        addSauna: false
     });
 
     // Согласия
@@ -255,6 +277,14 @@ export default function BookingPage({ params }: PageProps) {
 
     // Модальные окна
     const [activeModal, setActiveModal] = useState<'offer' | 'rental' | 'privacy' | null>(null);
+
+    if (isLoadingListing) {
+        return (
+            <div className="min-h-screen pt-20 flex items-center justify-center">
+                <Loader2 size={40} className="animate-spin text-primary-500" />
+            </div>
+        );
+    }
 
     if (!listing) {
         notFound();
@@ -304,10 +334,36 @@ export default function BookingPage({ params }: PageProps) {
         if (!canProceedToPayment()) return;
 
         setIsLoading(true);
-        // TODO: Отправка данных на сервер и оплата
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        setIsLoading(false);
-        setStep(3);
+        try {
+            const response = await fetch('/api/bookings', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    listingId: listing.id,
+                    checkIn: formData.checkIn,
+                    checkOut: formData.checkOut,
+                    guests: formData.guests,
+                    addSauna: formData.addSauna,
+                    guestData: formData,
+                    consents: consents
+                }),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Ошибка при создании бронирования');
+            }
+
+            // const booking = await response.json(); // Можно использовать, если нужно показать детали
+            setStep(3);
+        } catch (error) {
+            console.error('Booking error:', error);
+            alert('Произошла ошибка при бронировании. Пожалуйста, попробуйте снова.');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     // Расчёт цены
@@ -316,7 +372,8 @@ export default function BookingPage({ params }: PageProps) {
     const subtotal = pricePerNight * nights;
     const cleaningFee = listing.cleaningFee || 500;
     const serviceFee = Math.round(subtotal * 0.1);
-    const total = subtotal + cleaningFee + serviceFee;
+    const saunaPrice = (listing.hasSauna && formData.addSauna) ? (listing.saunaPrice || 0) : 0;
+    const total = subtotal + cleaningFee + serviceFee + saunaPrice;
 
     return (
         <div className="min-h-screen pt-20 pb-16">
@@ -398,6 +455,43 @@ export default function BookingPage({ params }: PageProps) {
                                         </div>
                                     </div>
                                 </div>
+
+                                {/* Extra Services */}
+                                {listing.hasSauna && (
+                                    <div className="card-glass p-6">
+                                        <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+                                            <Waves className="text-primary-400" size={24} />
+                                            Дополнительные услуги
+                                        </h2>
+                                        <div className="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/10">
+                                            <div className="flex items-center gap-3">
+                                                <div className="p-2 bg-orange-500/20 rounded-lg text-orange-400">
+                                                    <Waves size={24} />
+                                                </div>
+                                                <div>
+                                                    <h3 className="font-medium text-white">Аренда сауны</h3>
+                                                    <p className="text-sm text-gray-400">
+                                                        Включает растопку и принадлежности
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-4">
+                                                <span className="text-white font-semibold">
+                                                    {listing.saunaPrice?.toLocaleString()} ₽
+                                                </span>
+                                                <label className="relative inline-flex items-center cursor-pointer">
+                                                    <input
+                                                        type="checkbox"
+                                                        className="sr-only peer"
+                                                        checked={formData.addSauna}
+                                                        onChange={(e) => setFormData(prev => ({ ...prev, addSauna: e.target.checked }))}
+                                                    />
+                                                    <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600"></div>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
 
                                 {/* Personal Data */}
                                 <div className="card-glass p-6">
@@ -770,9 +864,14 @@ export default function BookingPage({ params }: PageProps) {
                                     <span>{cleaningFee.toLocaleString()} ₽</span>
                                 </div>
                                 <div className="flex justify-between text-gray-400">
-                                    <span>Сервисный сбор</span>
                                     <span>{serviceFee.toLocaleString()} ₽</span>
                                 </div>
+                                {formData.addSauna && listing.hasSauna && (
+                                    <div className="flex justify-between text-gray-400">
+                                        <span>Аренда сауны</span>
+                                        <span>{listing.saunaPrice?.toLocaleString()} ₽</span>
+                                    </div>
+                                )}
                                 <div className="flex justify-between text-white font-bold text-lg pt-3 border-t border-white/10">
                                     <span>Итого</span>
                                     <span>{total.toLocaleString()} ₽</span>
@@ -813,6 +912,6 @@ export default function BookingPage({ params }: PageProps) {
                 content={PRIVACY_POLICY_TEXT}
                 onScrollComplete={() => setReadDocuments(prev => ({ ...prev, privacy: true }))}
             />
-        </div>
+        </div >
     );
 }

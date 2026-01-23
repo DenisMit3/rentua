@@ -97,13 +97,38 @@ export async function POST(request: NextRequest) {
         const ip = request.headers.get('x-forwarded-for') || 'unknown';
         const userAgent = request.headers.get('user-agent') || 'unknown';
 
+        // Получаем или создаем пользователя
+        let userId = session?.user?.id;
+
+        if (!userId && guestDetails?.email) {
+            const user = await prisma.user.upsert({
+                where: { email: guestDetails.email },
+                update: {
+                    name: guestDetails.fullName,
+                    phone: guestDetails.phone
+                },
+                create: {
+                    email: guestDetails.email,
+                    name: guestDetails.fullName,
+                    phone: guestDetails.phone,
+                    role: 'USER',
+                    isVerified: false
+                }
+            });
+            userId = user.id;
+        }
+
+        if (!userId) {
+            return NextResponse.json({ error: 'User identification failed' }, { status: 400 });
+        }
+
         // Транзакция
         const booking = await prisma.$transaction(async (tx) => {
             // 1. Создаём бронирование
             const newBooking = await tx.vehicleBooking.create({
                 data: {
                     vehicleId,
-                    renterId: session?.user?.id || 'guest',
+                    renterId: userId,
                     ownerId: vehicle.ownerId,
                     pickupDate: pickupDateObj,
                     pickupTime: pickupTime || '10:00',

@@ -19,6 +19,8 @@ export interface Listing {
     hostName: string;
     hostAvatar: string;
     instantBook: boolean;
+    hasSauna?: boolean;
+    saunaPrice?: number;
 }
 
 // Список городов России для фильтров
@@ -239,6 +241,8 @@ export const listings: Listing[] = [
         reviewsCount: 42,
         hostName: 'Андрей',
         hostAvatar: 'https://picsum.photos/seed/andrey/150/150',
-        instantBook: false
+        instantBook: false,
+        hasSauna: true,
+        saunaPrice: 5000
     }
 ];

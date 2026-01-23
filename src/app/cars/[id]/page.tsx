@@ -1,6 +1,6 @@
 'use client';
 
-import { use } from 'react';
+import { use, useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
@@ -27,7 +27,7 @@ import {
     Music,
     CreditCard
 } from 'lucide-react';
-import { vehicles } from '@/data/vehicles';
+import { Vehicle } from '@/data/vehicles';
 import { notFound } from 'next/navigation';
 
 const featureIcons: Record<string, React.ComponentType<{ size?: number; className?: string }>> = {
@@ -67,10 +67,41 @@ interface PageProps {
 
 export default function VehicleDetailPage({ params }: PageProps) {
     const { id } = use(params);
-    const vehicle = vehicles.find(v => v.id === id);
+    const [vehicle, setVehicle] = useState<Vehicle | null>(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        if (!id) return;
+        async function fetchVehicle() {
+            try {
+                const res = await fetch(`/api/cars/${id}`);
+                if (!res.ok) {
+                    if (res.status === 404) notFound();
+                    throw new Error('Failed to fetch');
+                }
+                const data = await res.json();
+                setVehicle(data);
+            } catch (error) {
+                console.error(error);
+            } finally {
+                setLoading(false);
+            }
+        }
+        fetchVehicle();
+    }, [id]);
+
+    if (loading) {
+        return (
+            <div className="min-h-screen pt-24 pb-16 flex items-center justify-center">
+                <div className="text-white">Загрузка...</div>
+            </div>
+        );
+    }
 
     if (!vehicle) {
-        notFound();
+        // Technically handled by notFound() inside effect but render might happen before notFound() redirect completes if not handled carefully. 
+        // We rendered a loading state. If execution reaches here and not loading and no vehicle, meaningful not found.
+        return null;
     }
 
     return (

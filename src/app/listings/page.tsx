@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Search, SlidersHorizontal, MapPin, X } from 'lucide-react';
-import { listings, Listing } from '@/data/listings';
+import { Search, SlidersHorizontal, MapPin, X, Loader2 } from 'lucide-react';
 import ListingCard from '@/components/ListingCard';
+import { Listing } from '@/data/listings';
 
-const cities = ['Все города', 'Киев', 'Одесса', 'Львов', 'Харьков'];
+const cities = ['Все города', 'Киев', 'Одесса', 'Львов', 'Харьков']; // TODO: Update to RU/Actual cities
 const propertyTypes = [
     { value: 'all', label: 'Все типы' },
     { value: 'apartment', label: 'Квартира' },
@@ -16,11 +16,31 @@ const propertyTypes = [
 ];
 
 export default function ListingsPage() {
+    const [listings, setListings] = useState<Listing[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCity, setSelectedCity] = useState('Все города');
     const [selectedType, setSelectedType] = useState('all');
     const [priceRange, setPriceRange] = useState<[number, number]>([0, 10000]);
     const [showFilters, setShowFilters] = useState(false);
+
+    useEffect(() => {
+        const fetchListings = async () => {
+            try {
+                const res = await fetch('/api/listings');
+                if (res.ok) {
+                    const data = await res.json();
+                    setListings(data);
+                }
+            } catch (error) {
+                console.error('Failed to fetch listings:', error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchListings();
+    }, []);
 
     const filteredListings = useMemo(() => {
         return listings.filter(listing => {
@@ -43,7 +63,7 @@ export default function ListingsPage() {
             }
             return true;
         });
-    }, [searchQuery, selectedCity, selectedType, priceRange]);
+    }, [listings, searchQuery, selectedCity, selectedType, priceRange]);
 
     const clearFilters = () => {
         setSearchQuery('');
@@ -175,7 +195,11 @@ export default function ListingsPage() {
                 </motion.div>
 
                 {/* Results */}
-                {filteredListings.length > 0 ? (
+                {isLoading ? (
+                    <div className="flex justify-center items-center py-20">
+                        <Loader2 size={40} className="animate-spin text-primary-500" />
+                    </div>
+                ) : filteredListings.length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {filteredListings.map((listing, index) => (
                             <ListingCard key={listing.id} listing={listing} index={index} />

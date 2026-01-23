@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Search, SlidersHorizontal, MapPin, X, Car } from 'lucide-react';
 import { vehicles, Vehicle } from '@/data/vehicles';
@@ -23,6 +23,9 @@ const transmissionTypes = [
 ];
 
 export default function CarsPage() {
+    const [vehiclesData, setVehiclesData] = useState<Vehicle[]>([]);
+    const [loading, setLoading] = useState(true);
+
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCity, setSelectedCity] = useState('Все города');
     const [selectedType, setSelectedType] = useState('all');
@@ -30,33 +33,47 @@ export default function CarsPage() {
     const [priceRange, setPriceRange] = useState<[number, number]>([0, 10000]);
     const [showFilters, setShowFilters] = useState(false);
 
+    useEffect(() => {
+        async function fetchVehicles() {
+            setLoading(true);
+            try {
+                const params = new URLSearchParams();
+                if (selectedCity !== 'Все города') params.append('city', selectedCity);
+                if (selectedType !== 'all') params.append('type', selectedType);
+                if (selectedTransmission !== 'all') params.append('transmission', selectedTransmission);
+                if (searchQuery) params.append('search', searchQuery);
+
+                // Client-side filtering for price (or can pass to API if implemented)
+                // Since our API endpoint supports price range, we can add it, 
+                // but for now let's keep consistency with client-side filter for speed if array is small,
+                // OR better, trust API.
+                // Reusing API logic:
+                // params.append('minPrice', priceRange[0].toString());
+                // params.append('maxPrice', priceRange[1].toString());
+
+                const res = await fetch(`/api/cars?${params.toString()}`);
+                if (!res.ok) throw new Error('Failed to fetch');
+                const data = await res.json();
+                setVehiclesData(data);
+            } catch (error) {
+                console.error("Error loading vehicles", error);
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        // Debounce search
+        const timeoutId = setTimeout(() => {
+            fetchVehicles();
+        }, 500);
+
+        return () => clearTimeout(timeoutId);
+    }, [searchQuery, selectedCity, selectedType, selectedTransmission]);
+
     const filteredVehicles = useMemo(() => {
-        return vehicles.filter(vehicle => {
-            // Search query
-            if (searchQuery && !vehicle.title.toLowerCase().includes(searchQuery.toLowerCase()) &&
-                !vehicle.make.toLowerCase().includes(searchQuery.toLowerCase()) &&
-                !vehicle.model.toLowerCase().includes(searchQuery.toLowerCase())) {
-                return false;
-            }
-            // City filter
-            if (selectedCity !== 'Все города' && vehicle.city !== selectedCity) {
-                return false;
-            }
-            // Type filter
-            if (selectedType !== 'all' && vehicle.type !== selectedType) {
-                return false;
-            }
-            // Transmission filter
-            if (selectedTransmission !== 'all' && vehicle.transmission !== selectedTransmission) {
-                return false;
-            }
-            // Price filter
-            if (vehicle.pricePerDay < priceRange[0] || vehicle.pricePerDay > priceRange[1]) {
-                return false;
-            }
-            return true;
-        });
-    }, [searchQuery, selectedCity, selectedType, selectedTransmission, priceRange]);
+        // Client side price filter
+        return vehiclesData.filter(v => v.pricePerDay >= priceRange[0] && v.pricePerDay <= priceRange[1]);
+    }, [vehiclesData, priceRange]);
 
     const clearFilters = () => {
         setSearchQuery('');

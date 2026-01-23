@@ -1,6 +1,6 @@
 'use client';
 
-import { use } from 'react';
+import { use, useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
@@ -25,9 +25,10 @@ import {
     Calendar,
     CheckCircle,
     Shield,
-    CreditCard
+    CreditCard,
+    Loader2
 } from 'lucide-react';
-import { listings } from '@/data/listings';
+import { Listing } from '@/data/listings';
 import { notFound } from 'next/navigation';
 
 const amenityIcons: Record<string, React.ComponentType<{ size?: number; className?: string }>> = {
@@ -46,7 +47,35 @@ interface PageProps {
 
 export default function ListingDetailPage({ params }: PageProps) {
     const { id } = use(params);
-    const listing = listings.find(l => l.id === id);
+    const [listing, setListing] = useState<Listing | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchListing = async () => {
+            try {
+                const res = await fetch(`/api/listings/${id}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    setListing(data);
+                } else {
+                    setListing(null);
+                }
+            } catch (error) {
+                console.error('Failed to fetch listing:', error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchListing();
+    }, [id]);
+
+    if (isLoading) {
+        return (
+            <div className="min-h-screen pt-20 flex items-center justify-center">
+                <Loader2 size={40} className="animate-spin text-primary-500" />
+            </div>
+        );
+    }
 
     if (!listing) {
         notFound();
