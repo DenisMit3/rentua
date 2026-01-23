@@ -455,6 +455,186 @@ const vehiclesData = [
     }
 ];
 
+// SQL to create tables if they don't exist (Manual migration)
+async function ensureTablesExist() {
+    console.log('Ensuring tables exist...');
+
+    // Enums (handled as check constraints or implicit text usually, but Postgres supports CREATE TYPE)
+    // We will simulate enums with TEXT to avoid complex type management in raw SQL for now, or just rely on Prisma expecting them.
+    // For simplicity and robustness in this rescue script, we'll create tables.
+
+    await prisma.$executeRawUnsafe(`
+        CREATE TABLE IF NOT EXISTS "User" (
+            "id" TEXT NOT NULL,
+            "name" TEXT,
+            "email" TEXT,
+            "emailVerified" TIMESTAMP(3),
+            "image" TEXT,
+            "password" TEXT,
+            "phone" TEXT,
+            "avatar" TEXT,
+            "role" TEXT DEFAULT 'USER',
+            "isVerified" BOOLEAN NOT NULL DEFAULT false,
+            "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            "updatedAt" TIMESTAMP(3) NOT NULL,
+            CONSTRAINT "User_pkey" PRIMARY KEY ("id")
+        );
+        CREATE UNIQUE INDEX IF NOT EXISTS "User_email_key" ON "User"("email");
+
+        CREATE TABLE IF NOT EXISTS "Account" (
+            "id" TEXT NOT NULL,
+            "userId" TEXT NOT NULL,
+            "type" TEXT NOT NULL,
+            "provider" TEXT NOT NULL,
+            "providerAccountId" TEXT NOT NULL,
+            "refresh_token" TEXT,
+            "access_token" TEXT,
+            "expires_at" INTEGER,
+            "token_type" TEXT,
+            "scope" TEXT,
+            "id_token" TEXT,
+            "session_state" TEXT,
+            CONSTRAINT "Account_pkey" PRIMARY KEY ("id")
+        );
+        CREATE UNIQUE INDEX IF NOT EXISTS "Account_provider_providerAccountId_key" ON "Account"("provider", "providerAccountId");
+        
+        CREATE TABLE IF NOT EXISTS "Session" (
+            "id" TEXT NOT NULL,
+            "sessionToken" TEXT NOT NULL,
+            "userId" TEXT NOT NULL,
+            "expires" TIMESTAMP(3) NOT NULL,
+            CONSTRAINT "Session_pkey" PRIMARY KEY ("id")
+        );
+        CREATE UNIQUE INDEX IF NOT EXISTS "Session_sessionToken_key" ON "Session"("sessionToken");
+
+        CREATE TABLE IF NOT EXISTS "Listing" (
+            "id" TEXT NOT NULL,
+            "title" TEXT NOT NULL,
+            "description" TEXT NOT NULL,
+            "slug" TEXT NOT NULL,
+            "status" TEXT NOT NULL DEFAULT 'DRAFT',
+            "country" TEXT NOT NULL,
+            "city" TEXT NOT NULL,
+            "address" TEXT NOT NULL,
+            "latitude" DOUBLE PRECISION,
+            "longitude" DOUBLE PRECISION,
+            "propertyType" TEXT NOT NULL,
+            "rooms" INTEGER NOT NULL,
+            "bedrooms" INTEGER NOT NULL,
+            "beds" INTEGER NOT NULL,
+            "bathrooms" INTEGER NOT NULL,
+            "maxGuests" INTEGER NOT NULL,
+            "floor" INTEGER,
+            "totalFloors" INTEGER,
+            "area" DOUBLE PRECISION,
+            "pricePerNight" DOUBLE PRECISION NOT NULL,
+            "cleaningFee" DOUBLE PRECISION,
+            "deposit" DOUBLE PRECISION,
+            "instantBook" BOOLEAN NOT NULL DEFAULT false,
+            "images" TEXT[],
+            "hasSauna" BOOLEAN NOT NULL DEFAULT false,
+            "saunaPrice" DOUBLE PRECISION,
+            "views" INTEGER NOT NULL DEFAULT 0,
+            "rating" DOUBLE PRECISION DEFAULT 0,
+            "hostId" TEXT NOT NULL,
+            "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, 
+            CONSTRAINT "Listing_pkey" PRIMARY KEY ("id")
+        );
+        CREATE UNIQUE INDEX IF NOT EXISTS "Listing_slug_key" ON "Listing"("slug");
+
+        CREATE TABLE IF NOT EXISTS "Amenity" (
+            "id" TEXT NOT NULL,
+            "name" TEXT NOT NULL,
+            "icon" TEXT,
+            "category" TEXT NOT NULL,
+            CONSTRAINT "Amenity_pkey" PRIMARY KEY ("id")
+        );
+        CREATE UNIQUE INDEX IF NOT EXISTS "Amenity_name_key" ON "Amenity"("name");
+
+        CREATE TABLE IF NOT EXISTS "ListingAmenity" (
+            "id" TEXT NOT NULL,
+            "listingId" TEXT NOT NULL,
+            "amenityId" TEXT NOT NULL,
+            CONSTRAINT "ListingAmenity_pkey" PRIMARY KEY ("id")
+        );
+        CREATE UNIQUE INDEX IF NOT EXISTS "ListingAmenity_listingId_amenityId_key" ON "ListingAmenity"("listingId", "amenityId");
+
+        CREATE TABLE IF NOT EXISTS "Vehicle" (
+            "id" TEXT NOT NULL,
+            "title" TEXT NOT NULL,
+            "description" TEXT NOT NULL,
+            "slug" TEXT NOT NULL,
+            "status" TEXT NOT NULL DEFAULT 'DRAFT',
+            "make" TEXT NOT NULL,
+            "model" TEXT NOT NULL,
+            "year" INTEGER NOT NULL,
+            "color" TEXT,
+            "vin" TEXT,
+            "vehicleType" TEXT NOT NULL,
+            "transmission" TEXT NOT NULL,
+            "fuelType" TEXT NOT NULL,
+            "seats" INTEGER NOT NULL,
+            "doors" INTEGER NOT NULL,
+            "engineVolume" DOUBLE PRECISION,
+            "enginePower" INTEGER,
+            "city" TEXT NOT NULL,
+            "address" TEXT NOT NULL,
+            "latitude" DOUBLE PRECISION,
+            "longitude" DOUBLE PRECISION,
+            "pricePerDay" DOUBLE PRECISION NOT NULL,
+            "deposit" DOUBLE PRECISION,
+            "minRentalDays" INTEGER DEFAULT 1,
+            "maxRentalDays" INTEGER DEFAULT 30,
+            "minDriverAge" INTEGER,
+            "minDrivingExp" INTEGER,
+            "mileageLimit" INTEGER,
+            "overMileageFee" DOUBLE PRECISION,
+            "deliveryAvailable" BOOLEAN NOT NULL DEFAULT false,
+            "deliveryRadius" INTEGER,
+            "deliveryPrice" DOUBLE PRECISION,
+            "instantBook" BOOLEAN NOT NULL DEFAULT false,
+            "images" TEXT[],
+            "views" INTEGER NOT NULL DEFAULT 0,
+            "rating" DOUBLE PRECISION DEFAULT 0,
+            "ownerId" TEXT NOT NULL,
+            "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            CONSTRAINT "Vehicle_pkey" PRIMARY KEY ("id")
+        );
+        CREATE UNIQUE INDEX IF NOT EXISTS "Vehicle_slug_key" ON "Vehicle"("slug");
+
+        CREATE TABLE IF NOT EXISTS "VehicleFeature" (
+            "id" TEXT NOT NULL,
+            "name" TEXT NOT NULL,
+            "icon" TEXT,
+            "category" TEXT NOT NULL,
+            CONSTRAINT "VehicleFeature_pkey" PRIMARY KEY ("id")
+        );
+        CREATE UNIQUE INDEX IF NOT EXISTS "VehicleFeature_name_key" ON "VehicleFeature"("name");
+
+        CREATE TABLE IF NOT EXISTS "VehicleFeatureLink" (
+            "id" TEXT NOT NULL,
+            "vehicleId" TEXT NOT NULL,
+            "featureId" TEXT NOT NULL,
+            CONSTRAINT "VehicleFeatureLink_pkey" PRIMARY KEY ("id")
+        );
+         CREATE UNIQUE INDEX IF NOT EXISTS "VehicleFeatureLink_vehicleId_featureId_key" ON "VehicleFeatureLink"("vehicleId", "featureId");
+
+        CREATE TABLE IF NOT EXISTS "LegalDocument" (
+            "id" TEXT NOT NULL,
+            "type" TEXT NOT NULL,
+            "title" TEXT NOT NULL,
+            "content" TEXT NOT NULL,
+            "version" TEXT NOT NULL,
+            "isActive" BOOLEAN NOT NULL DEFAULT true,
+            "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            CONSTRAINT "LegalDocument_pkey" PRIMARY KEY ("id")
+        );
+    `);
+}
+
 export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const key = searchParams.get('key');
@@ -465,6 +645,9 @@ export async function GET(request: Request) {
 
     try {
         console.log('Seeding database via API...');
+
+        // Ensure tables exist before seeding
+        await ensureTablesExist();
 
         // 1. Create a dummy Host
         const password = await bcrypt.hash('password123', 10);
