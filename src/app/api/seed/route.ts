@@ -455,16 +455,13 @@ const vehiclesData = [
     }
 ];
 
-// SQL to create tables if they don't exist (Manual migration)
+// SQL to create tables if they don't exist
+// NOTE: We must execute commands one by one to avoid 42601 error.
 async function ensureTablesExist() {
     console.log('Ensuring tables exist...');
 
-    // Enums (handled as check constraints or implicit text usually, but Postgres supports CREATE TYPE)
-    // We will simulate enums with TEXT to avoid complex type management in raw SQL for now, or just rely on Prisma expecting them.
-    // For simplicity and robustness in this rescue script, we'll create tables.
-
-    await prisma.$executeRawUnsafe(`
-        CREATE TABLE IF NOT EXISTS "User" (
+    const commands = [
+        `CREATE TABLE IF NOT EXISTS "User" (
             "id" TEXT NOT NULL,
             "name" TEXT,
             "email" TEXT,
@@ -478,10 +475,10 @@ async function ensureTablesExist() {
             "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
             "updatedAt" TIMESTAMP(3) NOT NULL,
             CONSTRAINT "User_pkey" PRIMARY KEY ("id")
-        );
-        CREATE UNIQUE INDEX IF NOT EXISTS "User_email_key" ON "User"("email");
+        )`,
+        `CREATE UNIQUE INDEX IF NOT EXISTS "User_email_key" ON "User"("email")`,
 
-        CREATE TABLE IF NOT EXISTS "Account" (
+        `CREATE TABLE IF NOT EXISTS "Account" (
             "id" TEXT NOT NULL,
             "userId" TEXT NOT NULL,
             "type" TEXT NOT NULL,
@@ -495,19 +492,19 @@ async function ensureTablesExist() {
             "id_token" TEXT,
             "session_state" TEXT,
             CONSTRAINT "Account_pkey" PRIMARY KEY ("id")
-        );
-        CREATE UNIQUE INDEX IF NOT EXISTS "Account_provider_providerAccountId_key" ON "Account"("provider", "providerAccountId");
-        
-        CREATE TABLE IF NOT EXISTS "Session" (
+        )`,
+        `CREATE UNIQUE INDEX IF NOT EXISTS "Account_provider_providerAccountId_key" ON "Account"("provider", "providerAccountId")`,
+
+        `CREATE TABLE IF NOT EXISTS "Session" (
             "id" TEXT NOT NULL,
             "sessionToken" TEXT NOT NULL,
             "userId" TEXT NOT NULL,
             "expires" TIMESTAMP(3) NOT NULL,
             CONSTRAINT "Session_pkey" PRIMARY KEY ("id")
-        );
-        CREATE UNIQUE INDEX IF NOT EXISTS "Session_sessionToken_key" ON "Session"("sessionToken");
+        )`,
+        `CREATE UNIQUE INDEX IF NOT EXISTS "Session_sessionToken_key" ON "Session"("sessionToken")`,
 
-        CREATE TABLE IF NOT EXISTS "Listing" (
+        `CREATE TABLE IF NOT EXISTS "Listing" (
             "id" TEXT NOT NULL,
             "title" TEXT NOT NULL,
             "description" TEXT NOT NULL,
@@ -540,27 +537,27 @@ async function ensureTablesExist() {
             "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
             "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, 
             CONSTRAINT "Listing_pkey" PRIMARY KEY ("id")
-        );
-        CREATE UNIQUE INDEX IF NOT EXISTS "Listing_slug_key" ON "Listing"("slug");
+        )`,
+        `CREATE UNIQUE INDEX IF NOT EXISTS "Listing_slug_key" ON "Listing"("slug")`,
 
-        CREATE TABLE IF NOT EXISTS "Amenity" (
+        `CREATE TABLE IF NOT EXISTS "Amenity" (
             "id" TEXT NOT NULL,
             "name" TEXT NOT NULL,
             "icon" TEXT,
             "category" TEXT NOT NULL,
             CONSTRAINT "Amenity_pkey" PRIMARY KEY ("id")
-        );
-        CREATE UNIQUE INDEX IF NOT EXISTS "Amenity_name_key" ON "Amenity"("name");
+        )`,
+        `CREATE UNIQUE INDEX IF NOT EXISTS "Amenity_name_key" ON "Amenity"("name")`,
 
-        CREATE TABLE IF NOT EXISTS "ListingAmenity" (
+        `CREATE TABLE IF NOT EXISTS "ListingAmenity" (
             "id" TEXT NOT NULL,
             "listingId" TEXT NOT NULL,
             "amenityId" TEXT NOT NULL,
             CONSTRAINT "ListingAmenity_pkey" PRIMARY KEY ("id")
-        );
-        CREATE UNIQUE INDEX IF NOT EXISTS "ListingAmenity_listingId_amenityId_key" ON "ListingAmenity"("listingId", "amenityId");
+        )`,
+        `CREATE UNIQUE INDEX IF NOT EXISTS "ListingAmenity_listingId_amenityId_key" ON "ListingAmenity"("listingId", "amenityId")`,
 
-        CREATE TABLE IF NOT EXISTS "Vehicle" (
+        `CREATE TABLE IF NOT EXISTS "Vehicle" (
             "id" TEXT NOT NULL,
             "title" TEXT NOT NULL,
             "description" TEXT NOT NULL,
@@ -601,27 +598,27 @@ async function ensureTablesExist() {
             "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
             "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
             CONSTRAINT "Vehicle_pkey" PRIMARY KEY ("id")
-        );
-        CREATE UNIQUE INDEX IF NOT EXISTS "Vehicle_slug_key" ON "Vehicle"("slug");
+        )`,
+        `CREATE UNIQUE INDEX IF NOT EXISTS "Vehicle_slug_key" ON "Vehicle"("slug")`,
 
-        CREATE TABLE IF NOT EXISTS "VehicleFeature" (
+        `CREATE TABLE IF NOT EXISTS "VehicleFeature" (
             "id" TEXT NOT NULL,
             "name" TEXT NOT NULL,
             "icon" TEXT,
             "category" TEXT NOT NULL,
             CONSTRAINT "VehicleFeature_pkey" PRIMARY KEY ("id")
-        );
-        CREATE UNIQUE INDEX IF NOT EXISTS "VehicleFeature_name_key" ON "VehicleFeature"("name");
+        )`,
+        `CREATE UNIQUE INDEX IF NOT EXISTS "VehicleFeature_name_key" ON "VehicleFeature"("name")`,
 
-        CREATE TABLE IF NOT EXISTS "VehicleFeatureLink" (
+        `CREATE TABLE IF NOT EXISTS "VehicleFeatureLink" (
             "id" TEXT NOT NULL,
             "vehicleId" TEXT NOT NULL,
             "featureId" TEXT NOT NULL,
             CONSTRAINT "VehicleFeatureLink_pkey" PRIMARY KEY ("id")
-        );
-         CREATE UNIQUE INDEX IF NOT EXISTS "VehicleFeatureLink_vehicleId_featureId_key" ON "VehicleFeatureLink"("vehicleId", "featureId");
+        )`,
+        `CREATE UNIQUE INDEX IF NOT EXISTS "VehicleFeatureLink_vehicleId_featureId_key" ON "VehicleFeatureLink"("vehicleId", "featureId")`,
 
-        CREATE TABLE IF NOT EXISTS "LegalDocument" (
+        `CREATE TABLE IF NOT EXISTS "LegalDocument" (
             "id" TEXT NOT NULL,
             "type" TEXT NOT NULL,
             "title" TEXT NOT NULL,
@@ -631,8 +628,12 @@ async function ensureTablesExist() {
             "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
             "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
             CONSTRAINT "LegalDocument_pkey" PRIMARY KEY ("id")
-        );
-    `);
+        )`
+    ];
+
+    for (const command of commands) {
+        await prisma.$executeRawUnsafe(command);
+    }
 }
 
 export async function GET(request: Request) {
@@ -646,7 +647,6 @@ export async function GET(request: Request) {
     try {
         console.log('Seeding database via API...');
 
-        // Ensure tables exist before seeding
         await ensureTablesExist();
 
         // 1. Create a dummy Host
