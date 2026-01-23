@@ -472,7 +472,7 @@ async function main() {
             email: 'host@example.com',
             name: 'Super Host',
             password,
-            role: "HOST",
+            role: "HOST", // Enum
             isVerified: true
         }
     });
@@ -517,7 +517,7 @@ async function main() {
                 description: l.description,
                 pricePerNight: l.pricePerNight,
                 cleaningFee: l.cleaningFee,
-                images: JSON.stringify(l.images),
+                images: l.images, // PostgreSQL natively supports String[]
                 bedrooms: l.bedrooms,
                 beds: l.beds,
                 bathrooms: l.bathrooms,
@@ -548,7 +548,7 @@ async function main() {
                 pricePerNight: l.pricePerNight,
                 cleaningFee: l.cleaningFee,
                 instantBook: l.instantBook,
-                images: JSON.stringify(l.images),
+                images: l.images,
                 hostId: host.id,
                 hasSauna: (l as any).hasSauna || false,
                 saunaPrice: (l as any).saunaPrice || null,
@@ -611,12 +611,12 @@ async function main() {
                 make: v.make,
                 model: v.model,
                 year: v.year,
-                vehicleType: v.type,
-                transmission: v.transmission,
-                fuelType: v.fuelType,
+                vehicleType: v.type.toUpperCase() as any, // Map to Enum
+                transmission: v.transmission.toUpperCase() as any, // Map to Enum
+                fuelType: v.fuelType.toUpperCase() as any, // Map to Enum
                 pricePerDay: v.pricePerDay,
                 deposit: v.deposit,
-                images: JSON.stringify(v.images),
+                images: v.images, // PostgreSQL native array
                 seats: v.seats,
                 doors: v.doors,
                 mileageLimit: v.mileageLimit,
@@ -635,9 +635,9 @@ async function main() {
                 model: v.model,
                 year: v.year,
                 color: 'Black', // Placeholder
-                vehicleType: v.type,
-                transmission: v.transmission,
-                fuelType: v.fuelType,
+                vehicleType: v.type.toUpperCase() as any,
+                transmission: v.transmission.toUpperCase() as any,
+                fuelType: v.fuelType.toUpperCase() as any,
                 seats: v.seats,
                 doors: v.doors,
                 city: v.city,
@@ -655,7 +655,7 @@ async function main() {
                 deliveryRadius: v.deliveryRadius,
                 deliveryPrice: v.deliveryPrice,
                 instantBook: v.instantBook,
-                images: JSON.stringify(v.images),
+                images: v.images,
                 ownerId: host.id,
             }
         });

@@ -39,7 +39,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
         const mappedListing = {
             ...listing,
-            images: JSON.parse(listing.images),
+            // images is automatically array
             type: listing.propertyType,
             amenities: listing.amenities.map(a => a.amenity.name),
             reviewsCount: listing.reviews.length,

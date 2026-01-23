@@ -68,16 +68,9 @@ export async function GET(request: NextRequest) {
 
         // Преобразуем данные для фронтенда (features: string[], images: parsed)
         const formattedVehicles = vehicles.map(v => {
-            let parsedImages = [];
-            try {
-                parsedImages = JSON.parse(v.images);
-            } catch (e) {
-                parsedImages = [v.images]; // Fallback if simple string
-            }
-
             return {
                 ...v,
-                images: parsedImages,
+                // images is natively array
                 features: v.features.map(f => f.feature.name),
                 type: v.vehicleType,
                 ownerName: v.owner.name,

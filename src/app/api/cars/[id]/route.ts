@@ -46,21 +46,13 @@ export async function GET(
             return NextResponse.json({ error: 'Vehicle not found' }, { status: 404 });
         }
 
-        // Parse images
-        let parsedImages = [];
-        try {
-            parsedImages = JSON.parse(vehicle.images);
-        } catch (e) {
-            parsedImages = [vehicle.images];
-        }
-
         const formattedVehicle = {
             ...vehicle,
-            images: parsedImages,
+            // images is already an array in Prisma Postgres
             features: vehicle.features.map(f => f.feature.name),
             ownerName: vehicle.owner.name,
             ownerAvatar: vehicle.owner.avatar,
-            type: vehicle.vehicleType // Map vehicleType to type for frontend compatibility if needed
+            type: vehicle.vehicleType
         };
 
         return NextResponse.json(formattedVehicle);

@@ -83,7 +83,7 @@ export async function GET(request: NextRequest) {
 
             return {
                 ...l,
-                images: JSON.parse(l.images),
+                images: l.images, // JSON.parse logic removed, Prisma returns array
                 type: l.propertyType,
                 rating: avgRating || 5.0,
                 reviewsCount: l.reviews.length,
