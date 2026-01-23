@@ -199,9 +199,7 @@ const listingsData = [
         rating: 4.95,
         reviewsCount: 42,
         hostName: 'Андрей',
-        instantBook: false,
-        hasSauna: true,
-        saunaPrice: 5000
+        instantBook: false
     }
 ];
 
@@ -530,8 +528,7 @@ async function ensureTablesExist() {
             "deposit" DOUBLE PRECISION,
             "instantBook" BOOLEAN NOT NULL DEFAULT false,
             "images" TEXT[],
-            "hasSauna" BOOLEAN NOT NULL DEFAULT false,
-            "saunaPrice" DOUBLE PRECISION,
+
             "views" INTEGER NOT NULL DEFAULT 0,
             "rating" DOUBLE PRECISION DEFAULT 0,
             "hostId" TEXT NOT NULL,
@@ -665,6 +662,21 @@ export async function GET(request: Request) {
             }
         });
 
+        // 1.1 Create Admin User
+        const adminPassword = await bcrypt.hash('admin123', 10);
+        await prisma.user.upsert({
+            where: { email: 'admin@rentrf.ru' },
+            update: {},
+            create: {
+                email: 'admin@rentrf.ru',
+                name: 'Главный Администратор',
+                password: adminPassword,
+                role: "ADMIN",
+                isVerified: true,
+                avatar: 'https://picsum.photos/seed/admin/150/150'
+            }
+        });
+
         // 2. Create Amenities
         const allAmenities = new Set<string>();
         listingsData.forEach(l => l.amenities.forEach(a => allAmenities.add(a)));
@@ -699,7 +711,7 @@ export async function GET(request: Request) {
                     "id", "title", "description", "slug", "status", "country", "city", "address",
                     "latitude", "longitude", "propertyType", "rooms", "bedrooms", "beds", "bathrooms",
                     "maxGuests", "floor", "totalFloors", "area", "pricePerNight", "cleaningFee",
-                    "instantBook", "images", "hasSauna", "saunaPrice", "hostId", "updatedAt"
+                    "instantBook", "images", "hostId", "updatedAt"
                 ) VALUES (
                     '${listingId}',
                     '${l.title}',
@@ -724,8 +736,7 @@ export async function GET(request: Request) {
                     ${l.cleaningFee},
                     ${l.instantBook},
                     '${imagesSql}',
-                    ${(l as any).hasSauna || false},
-                    ${(l as any).saunaPrice || 'NULL'},
+
                     '${host.id}',
                     NOW()
                 )

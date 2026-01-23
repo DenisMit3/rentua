@@ -114,15 +114,7 @@ export async function POST(request: NextRequest) {
         const cleaningFee = listing.cleaningFee || 0;
         const serviceFee = Math.round(subtotal * 0.1); // 10% сервисный сбор
 
-        let saunaPrice = 0;
-        let isSaunaIncluded = false;
-
-        if (addSauna && listing.hasSauna) {
-            saunaPrice = listing.saunaPrice || 0;
-            isSaunaIncluded = true;
-        }
-
-        const totalPrice = subtotal + cleaningFee + serviceFee + saunaPrice;
+        const totalPrice = subtotal + cleaningFee + serviceFee;
 
         // 5. Поиск или создание пользователя (Guest) через Upsert
         // Используем upsert для атомарности и обновления данных (имени/телефона)
@@ -157,8 +149,6 @@ export async function POST(request: NextRequest) {
                     pricePerNight: pricePerNight,
                     cleaningFee: cleaningFee,
                     serviceFee: serviceFee,
-                    saunaIncluded: isSaunaIncluded,
-                    saunaPrice: isSaunaIncluded ? saunaPrice : null,
                     totalPrice: totalPrice,
                     specialRequests: guestData.specialRequests,
                     paymentIntentId: 'mock_payment_' + Date.now(),

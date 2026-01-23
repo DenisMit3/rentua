@@ -196,8 +196,6 @@ const listings = [
         reviewsCount: 42,
         hostName: 'Андрей',
         instantBook: false,
-        hasSauna: true,
-        saunaPrice: 5000
     }
 ];
 
@@ -479,6 +477,22 @@ async function main() {
 
     console.log(`Host created: ${host.id}`);
 
+    // 1.1 Create Admin User
+    const adminPassword = await bcrypt.hash('admin123', 10);
+    const admin = await prisma.user.upsert({
+        where: { email: 'admin@rentrf.ru' },
+        update: {},
+        create: {
+            email: 'admin@rentrf.ru',
+            name: 'Главный Администратор',
+            password: adminPassword,
+            role: "ADMIN",
+            isVerified: true
+        }
+    });
+
+    console.log(`Admin created: ${admin.id}`);
+
     // 2. Create Amenities
     // Collect all unique amenities
     const allAmenities = new Set<string>();
@@ -517,14 +531,12 @@ async function main() {
                 description: l.description,
                 pricePerNight: l.pricePerNight,
                 cleaningFee: l.cleaningFee,
-                images: l.images, // PostgreSQL natively supports String[]
+                images: { set: l.images },
                 bedrooms: l.bedrooms,
                 beds: l.beds,
                 bathrooms: l.bathrooms,
                 maxGuests: l.maxGuests,
                 instantBook: l.instantBook,
-                hasSauna: (l as any).hasSauna || false,
-                saunaPrice: (l as any).saunaPrice || null,
             },
             create: {
                 title: l.title,
@@ -550,8 +562,6 @@ async function main() {
                 instantBook: l.instantBook,
                 images: l.images,
                 hostId: host.id,
-                hasSauna: (l as any).hasSauna || false,
-                saunaPrice: (l as any).saunaPrice || null,
             }
         });
 
@@ -616,7 +626,7 @@ async function main() {
                 fuelType: v.fuelType.toUpperCase() as any, // Map to Enum
                 pricePerDay: v.pricePerDay,
                 deposit: v.deposit,
-                images: v.images, // PostgreSQL native array
+                images: { set: v.images },
                 seats: v.seats,
                 doors: v.doors,
                 mileageLimit: v.mileageLimit,
@@ -707,6 +717,78 @@ async function main() {
             });
             console.log(`Created legal doc: ${doc.title}`);
         }
+    }
+
+    // 6. Create Sample Bookings and Reviews for Stats
+    console.log('Seeding bookings and reviews...');
+
+    // Create a dummy Guest
+    const guestPassword = await bcrypt.hash('password123', 10);
+    const guest = await prisma.user.upsert({
+        where: { email: 'guest@example.com' },
+        update: {},
+        create: {
+            email: 'guest@example.com',
+            name: 'Ivan Guest',
+            password: guestPassword,
+            role: "USER"
+        }
+    });
+
+    const allListings = await prisma.listing.findMany({ take: 5 });
+    const allVehicles = await prisma.vehicle.findMany({ take: 5 });
+
+    for (let i = 0; i < 10; i++) {
+        const listing = allListings[i % allListings.length];
+        const daysAgo = Math.floor(Math.random() * 20);
+        const createdAt = new Date();
+        createdAt.setDate(createdAt.getDate() - daysAgo);
+
+        const checkIn = new Date(createdAt);
+        checkIn.setDate(checkIn.getDate() + 2);
+        const checkOut = new Date(checkIn);
+        checkOut.setDate(checkOut.getDate() + 3);
+
+        await prisma.booking.create({
+            data: {
+                listingId: listing.id,
+                guestId: guest.id,
+                hostId: host.id,
+                checkIn,
+                checkOut,
+                guestsCount: 2,
+                totalPrice: listing.pricePerNight * 3,
+                status: 'CONFIRMED',
+                createdAt
+            }
+        });
+    }
+
+    for (let i = 0; i < 5; i++) {
+        const vehicle = allVehicles[i % allVehicles.length];
+        const daysAgo = Math.floor(Math.random() * 15);
+        const createdAt = new Date();
+        createdAt.setDate(createdAt.getDate() - daysAgo);
+
+        await prisma.vehicleBooking.create({
+            data: {
+                vehicleId: vehicle.id,
+                renterId: guest.id,
+                ownerId: host.id,
+                pickupDate: new Date(),
+                returnDate: new Date(new Date().setDate(new Date().getDate() + 2)),
+                pickupTime: "10:00",
+                returnTime: "18:00",
+                days: 2,
+                pickupLocation: vehicle.city,
+                returnLocation: vehicle.city,
+                pricePerDay: vehicle.pricePerDay,
+                totalDaysPrice: vehicle.pricePerDay * 2,
+                deposit: vehicle.deposit,
+                status: 'CONFIRMED',
+                createdAt
+            }
+        });
     }
 
     console.log('Seeding completed.');

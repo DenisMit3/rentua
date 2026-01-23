@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { Prisma } from '@prisma/client';
+import { Prisma, VehicleType, TransmissionType } from '@prisma/client';
 
 export const dynamic = 'force-dynamic';
 
@@ -25,11 +25,11 @@ export async function GET(request: NextRequest) {
         }
 
         if (type && type !== 'all') {
-            where.vehicleType = type;
+            where.vehicleType = type.toUpperCase() as VehicleType;
         }
 
         if (transmission && transmission !== 'all') {
-            where.transmission = transmission;
+            where.transmission = transmission.toUpperCase() as TransmissionType;
         }
 
         if (minPrice || maxPrice) {
