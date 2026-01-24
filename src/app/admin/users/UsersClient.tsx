@@ -64,7 +64,7 @@ export function UsersClient({ initialData }: { initialData: UserData[] }) {
                 const user = row.original;
                 return (
                     <div className="flex items-center gap-3">
-                        <div className="h-9 w-9 overflow-hidden rounded-full bg-gradient-to-br from-indigo-500/20 to-purple-500/20 border border-white/10 flex items-center justify-center text-xs font-bold text-indigo-300">
+                        <div className="hidden md:flex h-9 w-9 overflow-hidden rounded-full bg-gradient-to-br from-indigo-500/20 to-purple-500/20 border border-white/10 items-center justify-center text-xs font-bold text-indigo-300">
                             {user.name?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase()}
                         </div>
                         <div className="flex flex-col">
