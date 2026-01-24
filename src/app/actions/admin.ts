@@ -80,3 +80,35 @@ export async function updateBookingStatus(bookingId: string, status: any, type: 
         return { success: false, error: 'Failed to update booking' };
     }
 }
+
+/**
+ * Delete a Listing
+ */
+export async function deleteListing(id: string) {
+    try {
+        await prisma.listing.delete({
+            where: { id }
+        });
+        revalidatePath('/admin/listings');
+        return { success: true };
+    } catch (error) {
+        console.error('Error deleting listing:', error);
+        return { success: false, error: 'Failed to delete listing' };
+    }
+}
+
+/**
+ * Delete a Vehicle
+ */
+export async function deleteVehicle(id: string) {
+    try {
+        await prisma.vehicle.delete({
+            where: { id }
+        });
+        revalidatePath('/admin/cars');
+        return { success: true };
+    } catch (error) {
+        console.error('Error deleting vehicle:', error);
+        return { success: false, error: 'Failed to delete vehicle' };
+    }
+}

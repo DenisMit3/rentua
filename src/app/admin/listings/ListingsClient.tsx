@@ -6,7 +6,7 @@ import { StatusBadge } from '@/components/admin/ui/StatusBadge';
 import { ListingStatus } from '@prisma/client';
 import { ExternalLink, Edit, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { updateListingStatus } from '@/app/actions/admin';
+import { updateListingStatus, deleteListing } from '@/app/actions/admin';
 import { useRouter } from 'next/navigation';
 
 type ListingData = {
@@ -32,6 +32,24 @@ export function ListingsClient({ initialData }: { initialData: ListingData[] }) 
                 if (res.success) {
                     router.refresh();
                     return `Объявление ${newStatus === 'ACTIVE' ? 'опубликовано' : 'отклонено'}`;
+                }
+                throw new Error(res.error);
+            },
+            error: (err) => err.message
+        });
+    };
+
+    const handleDelete = async (id: string, title: string) => {
+        if (!confirm(`Вы уверены, что хотите удалить объявление "${title}"?`)) return;
+
+        const promise = deleteListing(id);
+
+        toast.promise(promise, {
+            loading: 'Удаление...',
+            success: (res) => {
+                if (res.success) {
+                    router.refresh();
+                    return `Объявление "${title}" удалено`;
                 }
                 throw new Error(res.error);
             },
@@ -96,7 +114,7 @@ export function ListingsClient({ initialData }: { initialData: ListingData[] }) 
                         <Edit size={16} />
                     </button>
                     <button
-                        onClick={() => toast.error('Удаление объявлений ограничено для демо')}
+                        onClick={() => handleDelete(row.original.id, row.original.title)}
                         className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
                         title="Удалить"
                     >
