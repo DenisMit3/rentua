@@ -45,18 +45,8 @@ export function AdminSidebar({ isOpen, setIsOpen }: AdminSidebarProps) {
 
     const SidebarContent = () => (
         <>
-            {/* Logo Area */}
-            <div className="flex h-20 items-center justify-between px-8 border-b border-white/5">
-                <div className="flex items-center gap-3">
-                    <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-500 to-purple-500 shadow-lg shadow-indigo-500/20">
-                        <ShieldAlert className="h-6 w-6 text-white" />
-                    </div>
-                    <div>
-                        <h1 className="text-lg font-bold tracking-wide text-white">TITAN</h1>
-                        <p className="text-xs font-medium text-gray-500 uppercase tracking-widest">Admin V2</p>
-                    </div>
-                </div>
-            </div>
+            {/* Logo Area (Removed as it is now in Header) */}
+            <div className="flex h-20 items-center px-8 border-b border-white/5 opacity-0 pointer-events-none" aria-hidden="true" />
 
             {/* Navigation */}
             <nav className="flex-1 space-y-2 px-4 py-8 overflow-y-auto custom-scrollbar">
