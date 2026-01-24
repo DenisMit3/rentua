@@ -30,9 +30,13 @@ const menuItems = [
     { href: '/admin/settings', label: 'Настройки', icon: Settings },
 ];
 
-export function AdminSidebar() {
+interface AdminSidebarProps {
+    isOpen: boolean;
+    setIsOpen: (isOpen: boolean) => void;
+}
+
+export function AdminSidebar({ isOpen, setIsOpen }: AdminSidebarProps) {
     const pathname = usePathname();
-    const [isOpen, setIsOpen] = useState(false);
 
     // Close sidebar on navigation (mobile)
     useEffect(() => {
@@ -42,13 +46,15 @@ export function AdminSidebar() {
     const SidebarContent = () => (
         <>
             {/* Logo Area */}
-            <div className="flex h-20 items-center gap-3 px-8 border-b border-white/5">
-                <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-500 to-purple-500 shadow-lg shadow-indigo-500/20">
-                    <ShieldAlert className="h-6 w-6 text-white" />
-                </div>
-                <div>
-                    <h1 className="text-lg font-bold tracking-wide text-white">TITAN</h1>
-                    <p className="text-xs font-medium text-gray-500 uppercase tracking-widest">Admin V2</p>
+            <div className="flex h-20 items-center justify-between px-8 border-b border-white/5">
+                <div className="flex items-center gap-3">
+                    <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-500 to-purple-500 shadow-lg shadow-indigo-500/20">
+                        <ShieldAlert className="h-6 w-6 text-white" />
+                    </div>
+                    <div>
+                        <h1 className="text-lg font-bold tracking-wide text-white">TITAN</h1>
+                        <p className="text-xs font-medium text-gray-500 uppercase tracking-widest">Admin V2</p>
+                    </div>
                 </div>
             </div>
 
@@ -126,29 +132,6 @@ export function AdminSidebar() {
 
     return (
         <>
-            {/* Mobile Toggle Button */}
-            <div className="lg:hidden fixed top-4 left-4 z-50">
-                <button
-                    onClick={() => setIsOpen(!isOpen)}
-                    className="p-2 rounded-lg bg-gray-900/80 border border-white/10 text-white backdrop-blur-md shadow-lg"
-                >
-                    <Menu className="h-6 w-6" />
-                </button>
-            </div>
-
-            {/* Overlay for mobile */}
-            <AnimatePresence>
-                {isOpen && (
-                    <motion.div
-                        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        onClick={() => setIsOpen(false)}
-                    />
-                )}
-            </AnimatePresence>
-
             {/* Desktop Sidebar (Always Visible) */}
             <aside className="hidden lg:flex w-72 flex-col border-r border-white/5 bg-[#030711]/95 text-white backdrop-blur-xl h-screen sticky top-0">
                 <SidebarContent />
@@ -157,15 +140,24 @@ export function AdminSidebar() {
             {/* Mobile Sidebar (Drawer) */}
             <AnimatePresence>
                 {isOpen && (
-                    <motion.aside
-                        className="fixed inset-y-0 left-0 z-[100] w-72 flex flex-col border-r border-white/5 bg-[#030711] text-white shadow-2xl lg:hidden"
-                        initial={{ x: '-100%' }}
-                        animate={{ x: 0 }}
-                        exit={{ x: '-100%' }}
-                        transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                    >
-                        <SidebarContent />
-                    </motion.aside>
+                    <>
+                        <motion.div
+                            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[90] lg:hidden"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setIsOpen(false)}
+                        />
+                        <motion.aside
+                            className="fixed inset-y-0 left-0 z-[100] w-72 flex flex-col border-r border-white/5 bg-[#030711] text-white shadow-2xl lg:hidden"
+                            initial={{ x: '-100%' }}
+                            animate={{ x: 0 }}
+                            exit={{ x: '-100%' }}
+                            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                        >
+                            <SidebarContent />
+                        </motion.aside>
+                    </>
                 )}
             </AnimatePresence>
         </>

@@ -1,16 +1,27 @@
 'use client';
 
-import { Search, Bell, Command, LogOut } from 'lucide-react';
+import { Search, Bell, Command, LogOut, Menu } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { signOut, useSession } from 'next-auth/react';
 
-export function AdminHeader() {
+interface AdminHeaderProps {
+    onToggleSidebar: () => void;
+}
+
+export function AdminHeader({ onToggleSidebar }: AdminHeaderProps) {
     const { data: session } = useSession();
 
     return (
-        <header className="sticky top-0 z-10 flex h-20 items-center justify-between border-b border-white/5 bg-[#030711]/80 px-4 pl-16 lg:px-8 backdrop-blur-xl">
+        <header className="sticky top-0 z-10 flex h-20 items-center justify-between border-b border-white/5 bg-[#030711]/80 px-4 lg:px-8 backdrop-blur-xl">
             {/* Global Search Command Center */}
             <div className="flex flex-1 items-center justify-end md:justify-start">
+                {/* Mobile Sidebar Toggle */}
+                <button
+                    onClick={onToggleSidebar}
+                    className="lg:hidden mr-4 p-2 text-gray-400 hover:text-white"
+                >
+                    <Menu size={20} />
+                </button>
                 <button className="md:hidden p-2 text-gray-400 hover:text-white">
                     <Search size={20} />
                 </button>

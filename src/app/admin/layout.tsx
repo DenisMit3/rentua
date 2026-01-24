@@ -1,17 +1,19 @@
+
+
+'use client';
+
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
 import { AdminHeader } from '@/components/admin/AdminHeader';
 import { Toaster } from 'sonner';
-
-export const metadata = {
-    title: 'Titan Admin | RentRF',
-    description: 'Центр управления системой',
-};
+import { useState } from 'react';
 
 export default function AdminLayout({
     children,
 }: {
     children: React.ReactNode;
 }) {
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
     return (
         <div className="min-h-screen bg-[#030711] text-white font-sans selection:bg-indigo-500/30 selection:text-indigo-200">
             <Toaster position="top-right" theme="dark" richColors />
@@ -22,11 +24,11 @@ export default function AdminLayout({
             </div>
 
             <div className="relative z-10 flex min-h-screen">
-                <AdminSidebar />
+                <AdminSidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
 
-                <div className="flex flex-1 flex-col">
-                    <AdminHeader />
-                    <main className="flex-1 p-8 overflow-y-auto">
+                <div className="flex flex-1 flex-col transition-all duration-300 ease-in-out w-full">
+                    <AdminHeader onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
+                    <main className="flex-1 p-4 lg:p-8 overflow-y-auto overflow-x-hidden w-full">
                         {children}
                     </main>
                 </div>
