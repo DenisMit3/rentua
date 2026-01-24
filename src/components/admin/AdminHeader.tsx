@@ -45,35 +45,36 @@ export function AdminHeader({ onToggleSidebar }: AdminHeaderProps) {
             </div>
 
             {/* Right Actions */}
-            <div className="flex items-center gap-6">
-                {/* Live Status Indicator */}
-                <div className="hidden sm:flex items-center gap-2 rounded-full border border-green-500/20 bg-green-500/10 px-3 py-1 text-xs font-medium text-green-400">
+            {/* Right Actions */}
+            <div className="flex items-center gap-4">
+                {/* Live Status Indicator (Hidden for cleaner UI, can be re-enabled later) */}
+                {/* <div className="hidden xl:flex items-center gap-2 rounded-full border border-green-500/20 bg-green-500/10 px-3 py-1 text-xs font-medium text-green-400">
                     <span className="relative flex h-2 w-2">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
                         <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
                     </span>
-                    Система онлайн
-                </div>
+                    <span className="hidden 2xl:inline">Система онлайн</span>
+                </div> */}
 
-                <div className="flex items-center gap-4">
-                    <button className="relative rounded-xl p-2.5 text-gray-400 transition-colors hover:bg-white/5 hover:text-white">
+                <div className="flex items-center gap-2">
+                    <button className="relative rounded-xl p-2 text-gray-400 transition-colors hover:bg-white/5 hover:text-white">
                         <Bell size={20} />
-                        <span className="absolute top-2.5 right-2.5 h-2 w-2 rounded-full bg-indigo-500 ring-2 ring-[#030711]" />
+                        <span className="absolute top-2.5 right-2.5 h-1.5 w-1.5 rounded-full bg-indigo-500 ring-2 ring-[#030711]" />
                     </button>
 
-                    <div className="h-8 w-px bg-white/5" />
+                    <div className="h-6 w-px bg-white/5 mx-1" />
 
                     <div className="flex items-center gap-3">
-                        <div className="hidden md:flex flex-col text-right">
-                            <span className="text-sm font-bold text-white leading-tight">{session?.user?.name || 'Администратор'}</span>
-                            <span className="text-[10px] text-indigo-400 font-bold uppercase tracking-widest">{session?.user?.email === 'admin@rentrf.ru' ? 'Super Admin' : 'Editor'}</span>
+                        <div className="hidden xl:flex flex-col text-right">
+                            <span className="text-sm font-bold text-white leading-tight">{session?.user?.name?.split(' ')[0] || 'Admin'}</span>
+                            <span className="text-[10px] text-indigo-400 font-bold uppercase tracking-widest">ROOT</span>
                         </div>
                         <button
                             onClick={() => signOut({ callbackUrl: '/' })}
-                            className="group relative h-10 w-10 flex items-center justify-center rounded-xl bg-white/5 border border-white/5 hover:bg-red-500/10 hover:border-red-500/20 text-gray-400 hover:text-red-400 transition-all cursor-pointer"
-                            title="Выйти из системы"
+                            className="group relative h-9 w-9 flex items-center justify-center rounded-xl bg-white/5 border border-white/5 hover:bg-red-500/10 hover:border-red-500/20 text-gray-400 hover:text-red-400 transition-all cursor-pointer"
+                            title="Выйти"
                         >
-                            <LogOut size={18} />
+                            <LogOut size={16} />
                         </button>
                     </div>
                 </div>
