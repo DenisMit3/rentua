@@ -158,7 +158,7 @@ export function AdminSidebar() {
             <AnimatePresence>
                 {isOpen && (
                     <motion.aside
-                        className="fixed inset-y-0 left-0 z-50 w-72 flex flex-col border-r border-white/5 bg-[#030711] text-white shadow-2xl lg:hidden"
+                        className="fixed inset-y-0 left-0 z-[100] w-72 flex flex-col border-r border-white/5 bg-[#030711] text-white shadow-2xl lg:hidden"
                         initial={{ x: '-100%' }}
                         animate={{ x: 0 }}
                         exit={{ x: '-100%' }}
