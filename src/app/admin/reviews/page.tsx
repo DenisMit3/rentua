@@ -23,8 +23,8 @@ const columns: ColumnDef<UnifiedReview>[] = [
             const type = row.original.type;
             return (
                 <span className={`px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider border ${type === 'housing'
-                        ? 'bg-blue-500/10 border-blue-500/20 text-blue-400'
-                        : 'bg-orange-500/10 border-orange-500/20 text-orange-400'
+                    ? 'bg-blue-500/10 border-blue-500/20 text-blue-400'
+                    : 'bg-orange-500/10 border-orange-500/20 text-orange-400'
                     }`}>
                     {type === 'housing' ? 'Жилье' : 'Авто'}
                 </span>
@@ -123,20 +123,20 @@ export default async function AdminReviewsPage() {
 
     return (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-2xl font-bold text-white tracking-tight">Отзывы платформы</h1>
                     <p className="text-gray-400 text-sm">Модерация оценок и комментариев пользователей.</p>
                 </div>
-                <div className="flex gap-4">
-                    <CrystalCard className="px-4 py-2 flex items-center gap-3 bg-indigo-500/10 border-indigo-500/20">
-                        <div className="p-2 rounded-lg bg-indigo-500/20 text-indigo-400">
-                            <Star size={16} />
-                        </div>
-                        <div className="flex flex-col">
+                <div className="flex gap-4 w-full md:w-auto">
+                    <CrystalCard className="px-4 py-3 flex items-center justify-between md:justify-start gap-3 bg-indigo-500/10 border-indigo-500/20 w-full md:w-auto">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 rounded-lg bg-indigo-500/20 text-indigo-400">
+                                <Star size={16} />
+                            </div>
                             <span className="text-xs text-indigo-300 font-medium uppercase tracking-wider">Всего отзывов</span>
-                            <span className="text-xl font-bold text-white">{unified.length}</span>
                         </div>
+                        <span className="text-xl font-bold text-white">{unified.length}</span>
                     </CrystalCard>
                 </div>
             </div>

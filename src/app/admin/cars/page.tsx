@@ -36,12 +36,12 @@ export default async function AdminVehiclesPage() {
 
     return (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-2xl font-bold text-white tracking-tight">Автопарк Системы</h1>
                     <p className="text-gray-400 text-sm">Управление доступными автомобилями для аренды.</p>
                 </div>
-                <CrystalCard className="px-4 py-2 flex items-center gap-4 bg-amber-500/10 border-amber-500/20 text-amber-200">
+                <CrystalCard className="px-4 py-3 flex items-center justify-between md:justify-start gap-4 bg-amber-500/10 border-amber-500/20 text-amber-200">
                     <span className="text-sm font-medium">Всего авто</span>
                     <span className="text-2xl font-bold font-mono text-white">{vehicles.length}</span>
                 </CrystalCard>
