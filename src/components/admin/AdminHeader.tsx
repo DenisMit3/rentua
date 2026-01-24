@@ -8,7 +8,7 @@ export function AdminHeader() {
     const { data: session } = useSession();
 
     return (
-        <header className="sticky top-0 z-10 flex h-20 items-center justify-between border-b border-white/5 bg-[#030711]/80 px-8 backdrop-blur-xl">
+        <header className="sticky top-0 z-10 flex h-20 items-center justify-between border-b border-white/5 bg-[#030711]/80 px-4 pl-16 lg:px-8 backdrop-blur-xl">
             {/* Global Search Command Center */}
             <div className="flex flex-1 items-center">
                 <button
@@ -44,7 +44,7 @@ export function AdminHeader() {
                     <div className="h-8 w-px bg-white/5" />
 
                     <div className="flex items-center gap-3">
-                        <div className="flex flex-col text-right">
+                        <div className="hidden md:flex flex-col text-right">
                             <span className="text-sm font-bold text-white leading-tight">{session?.user?.name || 'Администратор'}</span>
                             <span className="text-[10px] text-indigo-400 font-bold uppercase tracking-widest">{session?.user?.email === 'admin@rentrf.ru' ? 'Super Admin' : 'Editor'}</span>
                         </div>
