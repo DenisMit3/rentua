@@ -756,8 +756,12 @@ async function main() {
                 hostId: host.id,
                 checkIn,
                 checkOut,
-                guestsCount: 2,
-                totalPrice: listing.pricePerNight * 3,
+                guests: 2,
+                nights: 3,
+                pricePerNight: listing.pricePerNight,
+                cleaningFee: listing.cleaningFee || 0,
+                serviceFee: 500,
+                totalPrice: (listing.pricePerNight * 3) + (listing.cleaningFee || 0) + 500,
                 status: 'CONFIRMED',
                 createdAt
             }
@@ -785,6 +789,8 @@ async function main() {
                 pricePerDay: vehicle.pricePerDay,
                 totalDaysPrice: vehicle.pricePerDay * 2,
                 deposit: vehicle.deposit,
+                serviceFee: 300,
+                totalPrice: (vehicle.pricePerDay * 2) + 300,
                 status: 'CONFIRMED',
                 createdAt
             }

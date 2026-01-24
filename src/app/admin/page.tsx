@@ -13,8 +13,10 @@ export default async function AdminDashboardPage() {
         totalBookings,
         totalVehicleBookings,
         pendingVerifications,
-        revenueData,
-        dailyRevenue
+        housingRevenueData,
+        vehicleRevenueData,
+        housingDailyRevenue,
+        vehicleDailyRevenue
     ] = await Promise.all([
         prisma.user.count(),
         prisma.booking.count({ where: { status: 'PENDING' } }),
@@ -24,25 +26,28 @@ export default async function AdminDashboardPage() {
         prisma.booking.aggregate({
             _sum: { totalPrice: true }
         }),
-        // Fetch revenue for the last 30 days
+        prisma.vehicleBooking.aggregate({
+            _sum: { totalPrice: true }
+        }),
+        // Fetch daily revenue for the last 30 days
         prisma.booking.findMany({
-            where: {
-                createdAt: {
-                    gte: new Date(new Date().setDate(new Date().getDate() - 30))
-                }
-            },
-            select: {
-                totalPrice: true,
-                createdAt: true
-            }
+            where: { createdAt: { gte: new Date(new Date().setDate(new Date().getDate() - 30)) } },
+            select: { totalPrice: true, createdAt: true }
+        }),
+        prisma.vehicleBooking.findMany({
+            where: { createdAt: { gte: new Date(new Date().setDate(new Date().getDate() - 30)) } },
+            select: { totalPrice: true, createdAt: true }
         })
     ]);
 
-    const totalRevenue = revenueData._sum.totalPrice || 0;
+    const totalRevenue = (housingRevenueData._sum.totalPrice || 0) + (vehicleRevenueData._sum.totalPrice || 0);
     const combinedBookings = totalBookings + totalVehicleBookings;
 
+    // Combine daily results from both
+    const combinedDaily = [...housingDailyRevenue, ...vehicleDailyRevenue];
+
     // Process daily revenue for the chart
-    const revenueByDayMap = dailyRevenue.reduce((acc, curr) => {
+    const revenueByDayMap = combinedDaily.reduce((acc, curr) => {
         const day = curr.createdAt.toISOString().split('T')[0];
         acc[day] = (acc[day] || 0) + (curr.totalPrice || 0);
         return acc;
@@ -62,15 +67,17 @@ export default async function AdminDashboardPage() {
     const maxRevenue = Math.max(...chartData.map(d => d.value), 1000);
 
     // 2. Fetch Recent Activity
-    const [recentUsers, recentBookings] = await Promise.all([
-        prisma.user.findMany({
-            orderBy: { createdAt: 'desc' },
-            take: 3
-        }),
+    const [recentUsers, recentBookings, recentVehicles] = await Promise.all([
+        prisma.user.findMany({ orderBy: { createdAt: 'desc' }, take: 3 }),
         prisma.booking.findMany({
             orderBy: { createdAt: 'desc' },
             take: 3,
             include: { listing: { select: { title: true } } }
+        }),
+        prisma.vehicleBooking.findMany({
+            orderBy: { createdAt: 'desc' },
+            take: 3,
+            include: { vehicle: { select: { title: true } } }
         })
     ]);
 
@@ -80,16 +87,26 @@ export default async function AdminDashboardPage() {
             action: 'Новый пользователь',
             detail: u.email || u.name || 'Anonymous',
             time: 'Недавно',
-            icon: <UserPlus size={14} className="text-indigo-400" />
+            icon: <UserPlus size={14} className="text-indigo-400" />,
+            date: u.createdAt
         })),
         ...recentBookings.map(b => ({
             id: b.id,
-            action: 'Бронирование создано',
+            action: 'Бронирование (Жилье)',
             detail: b.listing.title,
             time: 'Недавно',
-            icon: <CalendarCheck size={14} className="text-emerald-400" />
+            icon: <CalendarCheck size={14} className="text-emerald-400" />,
+            date: b.createdAt
+        })),
+        ...recentVehicles.map(v => ({
+            id: v.id,
+            action: 'Аренда авто',
+            detail: v.vehicle.title,
+            time: 'Недавно',
+            icon: <Database size={14} className="text-amber-400" />,
+            date: v.createdAt
         }))
-    ].slice(0, 5);
+    ].sort((a, b) => b.date.getTime() - a.date.getTime()).slice(0, 5);
 
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
