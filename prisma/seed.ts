@@ -478,10 +478,13 @@ async function main() {
     console.log(`Host created: ${host.id}`);
 
     // 1.1 Create Admin User
-    const adminPassword = await bcrypt.hash('admin123', 10);
+    const adminPassword = await bcrypt.hash('admin', 10);
     const admin = await prisma.user.upsert({
         where: { email: 'admin@rentrf.ru' },
-        update: {},
+        update: {
+            password: adminPassword,
+            role: "ADMIN",
+        },
         create: {
             email: 'admin@rentrf.ru',
             name: 'Главный Администратор',
