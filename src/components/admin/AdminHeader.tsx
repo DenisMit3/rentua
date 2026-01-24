@@ -10,10 +10,13 @@ export function AdminHeader() {
     return (
         <header className="sticky top-0 z-10 flex h-20 items-center justify-between border-b border-white/5 bg-[#030711]/80 px-4 pl-16 lg:px-8 backdrop-blur-xl">
             {/* Global Search Command Center */}
-            <div className="flex flex-1 items-center">
+            <div className="flex flex-1 items-center justify-end md:justify-start">
+                <button className="md:hidden p-2 text-gray-400 hover:text-white">
+                    <Search size={20} />
+                </button>
                 <button
                     onClick={() => { }} // TODO: Implement Command Palette (CMDK)
-                    className="group flex h-11 w-full max-w-lg items-center gap-3 rounded-xl border border-white/5 bg-white/5 px-4 text-sm text-gray-500 transition-all hover:bg-white/10 hover:border-white/10 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                    className="hidden md:flex group h-11 w-full max-w-lg items-center gap-3 rounded-xl border border-white/5 bg-white/5 px-4 text-sm text-gray-500 transition-all hover:bg-white/10 hover:border-white/10 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                 >
                     <Search size={18} className="text-gray-500 group-hover:text-gray-300 transition-colors" />
                     <span className="flex-1 text-left">Поиск по системе...</span>
