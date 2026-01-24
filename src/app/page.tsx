@@ -4,28 +4,35 @@ import { Listing } from '@/data/listings';
 import { Vehicle } from '@/data/vehicles';
 
 // Revalidate data every hour
-export const revalidate = 3600;
+// Revalidate data every hour
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export default async function HomePage() {
   // Fetch Listings
-  const dbListings = await prisma.listing.findMany({
-    where: { status: 'ACTIVE' },
-    take: 3,
-    orderBy: { createdAt: 'desc' },
-    include: {
-      host: true,
-      amenities: {
-        include: {
-          amenity: true
-        }
-      },
-      reviews: {
-        select: {
-          rating: true
+  let dbListings: any[] = [];
+  try {
+    dbListings = await prisma.listing.findMany({
+      where: { status: 'ACTIVE' },
+      take: 3,
+      orderBy: { createdAt: 'desc' },
+      include: {
+        host: true,
+        amenities: {
+          include: {
+            amenity: true
+          }
+        },
+        reviews: {
+          select: {
+            rating: true
+          }
         }
       }
-    }
-  });
+    });
+  } catch (error) {
+    console.error('Failed to fetch listings:', error);
+  }
 
   // Map Prisma Listing to UI Listing
   const featuredListings: Listing[] = dbListings.map(l => ({
@@ -42,35 +49,40 @@ export default async function HomePage() {
     beds: l.beds,
     bathrooms: l.bathrooms,
     maxGuests: l.maxGuests,
-    amenities: l.amenities.map(a => a.amenity.name),
-    rating: l.reviews.length > 0 ? l.reviews.reduce((acc, r) => acc + r.rating, 0) / l.reviews.length : 0,
+    amenities: l.amenities.map((a: any) => a.amenity.name),
+    rating: l.reviews.length > 0 ? l.reviews.reduce((acc: number, r: any) => acc + r.rating, 0) / l.reviews.length : 0,
     reviewsCount: l.reviews.length,
     hostName: l.host.name || 'Host',
     hostAvatar: l.host.avatar || '',
     instantBook: l.instantBook,
-    hasSauna: l.amenities.some(a => a.amenity.name === 'Сауна'),
+    hasSauna: l.amenities.some((a: any) => a.amenity.name === 'Сауна'),
     saunaPrice: undefined
   }));
 
   // Fetch Vehicles
-  const dbVehicles = await prisma.vehicle.findMany({
-    where: { status: 'ACTIVE' },
-    take: 3,
-    orderBy: { createdAt: 'desc' },
-    include: {
-      owner: true,
-      features: {
-        include: {
-          feature: true
-        }
-      },
-      reviews: {
-        select: {
-          rating: true
+  let dbVehicles: any[] = [];
+  try {
+    dbVehicles = await prisma.vehicle.findMany({
+      where: { status: 'ACTIVE' },
+      take: 3,
+      orderBy: { createdAt: 'desc' },
+      include: {
+        owner: true,
+        features: {
+          include: {
+            feature: true
+          }
+        },
+        reviews: {
+          select: {
+            rating: true
+          }
         }
       }
-    }
-  });
+    });
+  } catch (error) {
+    console.error('Failed to fetch vehicles:', error);
+  }
 
   // Map Prisma Vehicle to UI Vehicle
   const featuredVehicles: Vehicle[] = dbVehicles.map(v => ({
@@ -90,8 +102,8 @@ export default async function HomePage() {
     images: (v.images as unknown) as string[],
     seats: v.seats,
     doors: v.doors,
-    features: v.features.map(f => f.feature.name),
-    rating: v.reviews.length > 0 ? v.reviews.reduce((acc, r) => acc + r.rating, 0) / v.reviews.length : 0,
+    features: v.features.map((f: any) => f.feature.name),
+    rating: v.reviews.length > 0 ? v.reviews.reduce((acc: number, r: any) => acc + r.rating, 0) / v.reviews.length : 0,
     reviewsCount: v.reviews.length,
     ownerName: v.owner.name || 'Owner',
     ownerAvatar: v.owner.avatar || '',
