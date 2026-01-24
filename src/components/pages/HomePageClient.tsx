@@ -290,7 +290,7 @@ export default function HomePageClient({ featuredListings, featuredVehicles }: H
                                 transition={{ delay: index * 0.1 }}
                             >
                                 <Link
-                                    href={`/listings?city=${item.city}`}
+                                    href={`/listings?city=${encodeURIComponent(item.city)}`}
                                     className="block relative aspect-[4/3] rounded-2xl overflow-hidden group"
                                 >
                                     <Image
