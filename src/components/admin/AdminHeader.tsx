@@ -22,6 +22,12 @@ export function AdminHeader({ onToggleSidebar }: AdminHeaderProps) {
                 >
                     <Menu size={20} />
                 </button>
+
+                {/* Mobile Logo */}
+                <div className="lg:hidden flex items-center gap-2 mr-auto">
+                    <span className="text-lg font-bold tracking-wide text-white">TITAN</span>
+                </div>
+
                 <button className="md:hidden p-2 text-gray-400 hover:text-white">
                     <Search size={20} />
                 </button>
